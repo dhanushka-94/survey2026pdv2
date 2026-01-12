@@ -36,6 +36,7 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+next-env.d.ts
 
 # Testing
 coverage

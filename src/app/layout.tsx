@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -13,6 +13,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: '#E63946',
+};
+
 export const metadata: Metadata = {
   title: "Anonymous Survey - Your Voice Matters 💖",
   description: "Share your thoughts anonymously in this secure, private survey. Your identity is protected.",
@@ -24,7 +28,6 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
-  themeColor: '#E63946',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

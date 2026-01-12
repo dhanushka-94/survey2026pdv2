@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { isSurveyActive } from '@/lib/utils';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ClientSurveyRedirect } from '@/components/survey/ClientSurveyRedirect';
 import { ClearHistoryButton } from '@/components/survey/ClearHistoryButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 async function getAllActiveSurveys() {
   const { data: surveys, error } = await supabase
@@ -34,7 +36,15 @@ export default async function Home() {
   // If there are active surveys, let client-side handle which one to show
   // (it will skip completed ones)
   if (activeSurveys.length > 0) {
-    return <ClientSurveyRedirect surveys={activeSurveys} />;
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-pink-50 to-red-50">
+          <LoadingSpinner className="py-12" />
+        </div>
+      }>
+        <ClientSurveyRedirect surveys={activeSurveys} />
+      </Suspense>
+    );
   }
 
   // If no active survey, show landing page

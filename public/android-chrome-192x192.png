@@ -1,0 +1,10 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="androidGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E63946;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d32f3d;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="48" fill="#ffffff"/>
+  <path d="M96,155 C96,155 40,115 40,70 C40,42 56,28 72,28 C83,28 90,35 96,45 C102,35 109,28 120,28 C136,28 152,42 152,70 C152,115 96,155 96,155 Z" fill="url(#androidGradient)" stroke="#fff" stroke-width="4"/>
+</svg>

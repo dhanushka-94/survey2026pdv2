@@ -16,6 +16,19 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDevice, setFilterDevice] = useState<string>('all');
+  const [expandedImages, setExpandedImages] = useState<Set<string>>(new Set());
+
+  const toggleImageExpand = (key: string) => {
+    setExpandedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
 
   // Get unique device types for filter
   const deviceTypes = ['all', ...new Set(responses.map(r => r.device_type))];
@@ -247,46 +260,92 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
 
                     {/* Answers list */}
                     <h4 className="text-sm font-semibold mb-3 text-foreground">All Answers:</h4>
-                    <div className="space-y-2">
-                      {response.answers.map((answer, answerIndex) => (
-                        <div
-                          key={answer.question_id}
-                          className="p-3 bg-white rounded-lg border border-border"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
-                            {/* Question info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                  Q{answerIndex + 1}
-                                </span>
-                                {answer.has_media && (
-                                  answer.media_viewed ? (
-                                    <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1">
-                                      👁️ Viewed
+                    <div className="space-y-3">
+                      {response.answers.map((answer, answerIndex) => {
+                        const imageKey = `${response.session_id}-${answer.question_id}`;
+                        const isImageExpanded = expandedImages.has(imageKey);
+                        
+                        return (
+                          <div
+                            key={answer.question_id}
+                            className="p-3 bg-white rounded-lg border border-border"
+                          >
+                            <div className="flex flex-col gap-3">
+                              {/* Question header row */}
+                              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                                {/* Question info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                      Q{answerIndex + 1}
                                     </span>
-                                  ) : (
-                                    <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-1">
-                                      🙈 Not viewed
+                                    {answer.has_media && (
+                                      answer.media_viewed ? (
+                                        <button
+                                          onClick={() => toggleImageExpand(imageKey)}
+                                          className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1 hover:bg-green-200 transition-colors cursor-pointer"
+                                        >
+                                          👁️ Viewed {isImageExpanded ? '(hide)' : '(show)'}
+                                        </button>
+                                      ) : (
+                                        <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-1">
+                                          🙈 Not viewed
+                                        </span>
+                                      )
+                                    )}
+                                    <span className="text-xs text-muted-foreground">
+                                      ⏱️ {formatTime(answer.time_spent_seconds)}
                                     </span>
-                                  )
-                                )}
-                                <span className="text-xs text-muted-foreground">
-                                  ⏱️ {formatTime(answer.time_spent_seconds)}
-                                </span>
+                                  </div>
+                                  <p className="text-sm text-foreground">
+                                    {answer.question_text}
+                                  </p>
+                                </div>
+                                
+                                {/* Answer value */}
+                                <div className="flex-shrink-0">
+                                  {getAnswerDisplay(answer.answer_value, answer.question_type)}
+                                </div>
                               </div>
-                              <p className="text-sm text-foreground">
-                                {answer.question_text}
-                              </p>
-                            </div>
-                            
-                            {/* Answer value */}
-                            <div className="flex-shrink-0">
-                              {getAnswerDisplay(answer.answer_value, answer.question_type)}
+
+                              {/* Show image if viewed and expanded */}
+                              {answer.has_media && answer.media_viewed && answer.media_url && isImageExpanded && (
+                                <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                                    <span>📸</span> Image viewed by this user:
+                                  </p>
+                                  <img
+                                    src={answer.media_url}
+                                    alt="Question media"
+                                    className="max-w-full sm:max-w-md rounded-lg shadow-sm"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Show thumbnail for non-viewed images */}
+                              {answer.has_media && !answer.media_viewed && answer.media_url && (
+                                <div className="mt-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+                                  <p className="text-xs text-yellow-700 mb-2 flex items-center gap-1">
+                                    <span>🙈</span> User did NOT view this image:
+                                  </p>
+                                  <div className="relative">
+                                    <img
+                                      src={answer.media_url}
+                                      alt="Question media (not viewed)"
+                                      className="max-w-full sm:max-w-md rounded-lg shadow-sm blur-sm opacity-50"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <span className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-medium">
+                                        Not revealed by user
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     
                     {/* Session footer */}

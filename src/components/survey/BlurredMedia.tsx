@@ -80,8 +80,13 @@ export function BlurredMedia({
       {/* Re-blur button - shown when revealed */}
       {isRevealed && (
         <button
-          onClick={() => setIsRevealed(false)}
-          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white text-xs px-3 py-1.5 rounded-full transition-colors flex items-center gap-1"
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsRevealed(false);
+          }}
+          className="absolute top-2 right-2 z-50 bg-black/60 hover:bg-black/80 text-white text-sm px-4 py-2 rounded-full transition-colors flex items-center gap-2 shadow-lg cursor-pointer"
         >
           <span>🙈</span>
           <span>Hide</span>

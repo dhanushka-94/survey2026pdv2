@@ -150,6 +150,7 @@ export interface IndividualAnswer {
   answer_value: string;
   time_spent_seconds: number;
   has_media: boolean;
+  media_url: string | null;
   media_viewed: boolean;
 }
 
@@ -247,6 +248,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
         answer_value: response.answer_value,
         time_spent_seconds: timeSpent,
         has_media: hasMedia,
+        media_url: response.question?.media_url || null,
         media_viewed: mediaViewed,
       });
       

@@ -322,24 +322,20 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
                                 </div>
                               )}
 
-                              {/* Show thumbnail for non-viewed images */}
+                              {/* Show image clearly for admin - even if user didn't view */}
                               {answer.has_media && !answer.media_viewed && answer.media_url && (
-                                <div className="mt-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
-                                  <p className="text-xs text-yellow-700 mb-2 flex items-center gap-1">
-                                    <span>🙈</span> User did NOT view this image:
+                                <div className="mt-2 p-3 bg-red-50 rounded-lg border-2 border-red-200">
+                                  <p className="text-xs text-red-700 mb-2 flex items-center gap-1 font-semibold">
+                                    <span>⚠️</span> User did NOT view this image (Admin View):
                                   </p>
-                                  <div className="relative">
-                                    <img
-                                      src={answer.media_url}
-                                      alt="Question media (not viewed)"
-                                      className="max-w-full sm:max-w-md rounded-lg shadow-sm blur-sm opacity-50"
-                                    />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <span className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-medium">
-                                        Not revealed by user
-                                      </span>
-                                    </div>
-                                  </div>
+                                  <img
+                                    src={answer.media_url}
+                                    alt="Question media (not viewed by user)"
+                                    className="max-w-full sm:max-w-md rounded-lg shadow-md"
+                                  />
+                                  <p className="text-xs text-red-600 mt-2 italic">
+                                    User skipped viewing this image before answering
+                                  </p>
                                 </div>
                               )}
                             </div>

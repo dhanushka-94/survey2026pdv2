@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trackMediaView } from '@/actions/tracking';
 
 interface BlurredMediaProps {
@@ -22,6 +22,12 @@ export function BlurredMedia({
 }: BlurredMediaProps) {
   const [isRevealed, setIsRevealed] = useState(false);
   const [hasTracked, setHasTracked] = useState(false);
+
+  // Reset to hidden state when question changes (new question = hidden image)
+  useEffect(() => {
+    setIsRevealed(false);
+    setHasTracked(false);
+  }, [questionId]);
 
   const handleReveal = async () => {
     setIsRevealed(true);
@@ -54,18 +60,18 @@ export function BlurredMedia({
       <img
         src={src}
         alt={alt}
-        className={`w-full rounded-lg transition-all duration-300 ${
-          isRevealed ? 'blur-0' : 'blur-xl'
+        className={`w-full rounded-lg transition-all duration-500 ${
+          isRevealed ? 'blur-0' : 'blur-2xl'
         }`}
       />
 
-      {/* Overlay - shown when blurred */}
+      {/* Overlay - shown when blurred, click to reveal (cannot hide again) */}
       {!isRevealed && (
         <button
           onClick={handleReveal}
-          className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 rounded-lg cursor-pointer hover:bg-black/40 transition-colors"
+          className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 rounded-lg cursor-pointer hover:bg-black/50 transition-colors"
         >
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg text-center">
+          <div className="bg-white/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg text-center">
             <div className="text-3xl mb-2">👁️</div>
             <p className="text-sm font-medium text-gray-800">
               Tap to view image
@@ -77,21 +83,7 @@ export function BlurredMedia({
         </button>
       )}
 
-      {/* Re-blur button - shown when revealed */}
-      {isRevealed && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsRevealed(false);
-          }}
-          className="absolute top-2 right-2 z-50 bg-black/60 hover:bg-black/80 text-white text-sm px-4 py-2 rounded-full transition-colors flex items-center gap-2 shadow-lg cursor-pointer"
-        >
-          <span>🙈</span>
-          <span>Hide</span>
-        </button>
-      )}
+      {/* No hide button - once revealed, stays revealed until next question */}
     </div>
   );
 }

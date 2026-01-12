@@ -1,8 +1,6 @@
 import { Suspense } from 'react';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase/client';
 import { isSurveyActive } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ClientSurveyRedirect } from '@/components/survey/ClientSurveyRedirect';
 import { ClearHistoryButton } from '@/components/survey/ClearHistoryButton';
@@ -28,8 +26,6 @@ async function getAllActiveSurveys() {
 }
 
 export default async function Home() {
-  const adminPath = process.env.ADMIN_SECRET_PATH || 'admin-x9QpK7';
-  
   // Get all active surveys
   const activeSurveys = await getAllActiveSurveys();
 
@@ -76,7 +72,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="bg-muted/50 rounded-xl p-6 mb-4">
+          <div className="bg-muted/50 rounded-xl p-6">
             <p className="text-sm text-muted-foreground mb-3 font-medium">
               Want to retake a survey or clear your history?
             </p>
@@ -84,18 +80,6 @@ export default async function Home() {
             <p className="text-xs text-muted-foreground mt-2">
               This will let you retake surveys (for testing)
             </p>
-          </div>
-
-          <div className="bg-muted/50 rounded-xl p-6">
-            <p className="text-sm text-muted-foreground mb-3 font-medium">
-              Are you an administrator?
-            </p>
-            <Link href={`/${adminPath}`}>
-              <Button variant="secondary" className="gap-2">
-                <span>🎯</span>
-                Access Admin Dashboard
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>

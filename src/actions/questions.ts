@@ -46,6 +46,11 @@ export async function getQuestion(id: string) {
 
 export async function createQuestion(formData: QuestionFormData) {
   try {
+    // Filter out empty URLs from media_urls array
+    const cleanMediaUrls = formData.media_urls && formData.media_urls.length > 0
+      ? formData.media_urls.filter(url => url && url.trim().length > 0)
+      : null;
+
     const { data, error } = await supabaseAdmin
       .from('questions')
       .insert([
@@ -55,6 +60,7 @@ export async function createQuestion(formData: QuestionFormData) {
           question_text: formData.question_text,
           description: formData.description || null,
           media_url: formData.media_url || null,
+          media_urls: cleanMediaUrls,
           question_type: formData.question_type,
           order_index: formData.order_index,
         },
@@ -79,6 +85,13 @@ export async function updateQuestion(id: string, formData: Partial<QuestionFormD
     if (formData.question_text !== undefined) updateData.question_text = formData.question_text;
     if (formData.description !== undefined) updateData.description = formData.description || null;
     if (formData.media_url !== undefined) updateData.media_url = formData.media_url || null;
+    if (formData.media_urls !== undefined) {
+      // Filter out empty URLs
+      const cleanMediaUrls = formData.media_urls && formData.media_urls.length > 0
+        ? formData.media_urls.filter(url => url && url.trim().length > 0)
+        : null;
+      updateData.media_urls = cleanMediaUrls;
+    }
     if (formData.question_type !== undefined) updateData.question_type = formData.question_type;
     if (formData.category_id !== undefined) updateData.category_id = formData.category_id || null;
     if (formData.order_index !== undefined) updateData.order_index = formData.order_index;

@@ -151,6 +151,7 @@ export interface IndividualAnswer {
   time_spent_seconds: number;
   has_media: boolean;
   media_url: string | null;
+  media_urls?: string[] | null;
   media_viewed: boolean;
 }
 
@@ -178,7 +179,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       .from('responses')
       .select(`
         *,
-        question:questions(id, question_text, question_type, media_url)
+        question:questions(id, question_text, question_type, media_url, media_urls)
       `)
       .eq('survey_id', surveyId)
       .order('created_at', { ascending: true });
@@ -238,7 +239,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       }
       
       const timeSpent = response.time_spent_seconds || 0;
-      const hasMedia = !!response.question?.media_url;
+      const hasMedia = !!response.question?.media_url || (response.question?.media_urls && response.question.media_urls.length > 0);
       const mediaViewed = viewedMedia.has(`${sid}-${response.question_id}`);
       
       sessionMap[sid].answers.push({
@@ -249,6 +250,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
         time_spent_seconds: timeSpent,
         has_media: hasMedia,
         media_url: response.question?.media_url || null,
+        media_urls: response.question?.media_urls || null,
         media_viewed: mediaViewed,
       });
       

@@ -338,6 +338,56 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
                                   </p>
                                 </div>
                               )}
+
+                              {/* Multiple Images Support */}
+                              {answer.media_urls && answer.media_urls.length > 0 && (
+                                <div className="mt-2">
+                                  {answer.media_viewed ? (
+                                    <div className="p-2 bg-green-50 rounded-lg border border-green-200">
+                                      <p className="text-xs text-green-700 mb-2 flex items-center gap-1 font-semibold">
+                                        <span>👁️</span> User viewed images ({answer.media_urls.length} total):
+                                      </p>
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {answer.media_urls.map((url: string, idx: number) => (
+                                          <div key={idx} className="relative">
+                                            <img
+                                              src={url}
+                                              alt={`Media ${idx + 1}`}
+                                              className="w-full h-32 object-cover rounded-lg shadow-sm"
+                                            />
+                                            <div className="absolute top-1 left-1 w-6 h-6 bg-green-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                              {idx + 1}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="p-3 bg-red-50 rounded-lg border-2 border-red-200">
+                                      <p className="text-xs text-red-700 mb-2 flex items-center gap-1 font-semibold">
+                                        <span>⚠️</span> User did NOT view these images (Admin View - {answer.media_urls.length} images):
+                                      </p>
+                                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {answer.media_urls.map((url: string, idx: number) => (
+                                          <div key={idx} className="relative">
+                                            <img
+                                              src={url}
+                                              alt={`Media ${idx + 1} (not viewed)`}
+                                              className="w-full h-32 object-cover rounded-lg shadow-md"
+                                            />
+                                            <div className="absolute top-1 left-1 w-6 h-6 bg-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                                              {idx + 1}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <p className="text-xs text-red-600 mt-2 italic">
+                                        User skipped viewing these images before answering
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                           </div>
                         </div>
                         );

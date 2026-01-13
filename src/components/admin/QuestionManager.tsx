@@ -28,6 +28,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
     question_text: '',
     description: '',
     media_url: '',
+    media_urls: [] as string[],
     question_type: QuestionType.LIKE_DISLIKE,
     category_id: categories[0]?.id || '',
   });
@@ -43,6 +44,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
       question_text: '',
       description: '',
       media_url: '',
+      media_urls: [],
       question_type: QuestionType.LIKE_DISLIKE,
       category_id: categories[0]?.id || '',
     });
@@ -131,6 +133,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
       question_text: question.question_text,
       description: question.description || '',
       media_url: question.media_url || '',
+      media_urls: question.media_urls || [],
       question_type: question.question_type,
       category_id: question.category_id || '',
     });
@@ -338,12 +341,143 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
               )}
             </div>
 
-            <MediaUpload
-              currentUrl={formData.media_url}
-              onUpload={(url) => setFormData({ ...formData, media_url: url })}
-              onRemove={() => setFormData({ ...formData, media_url: '' })}
-              disabled={loading === 'form'}
-            />
+            {/* Image Upload Mode Toggle */}
+            <div className="border border-border rounded-lg p-4 bg-background">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-sm">Media</h4>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, media_urls: [] })}
+                    className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                      formData.media_urls.length === 0
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    disabled={loading === 'form'}
+                  >
+                    Single Image
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.media_urls.length === 0 && formData.media_url) {
+                        setFormData({ ...formData, media_urls: [formData.media_url], media_url: '' });
+                      } else if (formData.media_urls.length === 0) {
+                        setFormData({ ...formData, media_urls: [''] });
+                      }
+                    }}
+                    className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                      formData.media_urls.length > 0
+                        ? 'bg-primary text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    disabled={loading === 'form'}
+                  >
+                    📸 Multiple Images
+                  </button>
+                </div>
+              </div>
+
+              {/* Single Image Mode */}
+              {formData.media_urls.length === 0 && (
+                <MediaUpload
+                  currentUrl={formData.media_url}
+                  onUpload={(url) => setFormData({ ...formData, media_url: url })}
+                  onRemove={() => setFormData({ ...formData, media_url: '' })}
+                  disabled={loading === 'form'}
+                />
+              )}
+
+              {/* Multiple Images Mode */}
+              {formData.media_urls.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Add multiple images for this question. Users can view them all (not as a carousel).
+                  </p>
+                  
+                  {formData.media_urls.map((url, index) => (
+                    <div key={index} className="border border-border rounded-lg p-3 bg-muted/30">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          {url && (
+                            <img
+                              src={url}
+                              alt={`Preview ${index + 1}`}
+                              className="w-full max-h-32 object-cover rounded-lg"
+                            />
+                          )}
+                          <MediaUpload
+                            currentUrl={url}
+                            onUpload={(newUrl) => {
+                              const newUrls = [...formData.media_urls];
+                              newUrls[index] = newUrl;
+                              setFormData({ ...formData, media_urls: newUrls });
+                            }}
+                            onRemove={() => {
+                              const newUrls = formData.media_urls.filter((_, i) => i !== index);
+                              setFormData({ ...formData, media_urls: newUrls });
+                            }}
+                            disabled={loading === 'form'}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          {/* Move Up */}
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrls = [...formData.media_urls];
+                                [newUrls[index], newUrls[index - 1]] = [newUrls[index - 1], newUrls[index]];
+                                setFormData({ ...formData, media_urls: newUrls });
+                              }}
+                              className="p-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                              title="Move up"
+                              disabled={loading === 'form'}
+                            >
+                              ⬆️
+                            </button>
+                          )}
+                          {/* Move Down */}
+                          {index < formData.media_urls.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newUrls = [...formData.media_urls];
+                                [newUrls[index], newUrls[index + 1]] = [newUrls[index + 1], newUrls[index]];
+                                setFormData({ ...formData, media_urls: newUrls });
+                              }}
+                              className="p-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+                              title="Move down"
+                              disabled={loading === 'form'}
+                            >
+                              ⬇️
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, media_urls: [...formData.media_urls, ''] })}
+                    disabled={loading === 'form'}
+                  >
+                    ➕ Add Another Image
+                  </Button>
+                  
+                  <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                    💡 Tip: Users will see all images in a grid. They can click to reveal each one.
+                  </p>
+                </div>
+              )}
+            </div>
 
             <div className="flex gap-3">
               <Button type="submit" disabled={loading === 'form'}>
@@ -381,17 +515,23 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                     </span>
                     <span className="px-2 py-1 text-xs font-medium bg-primary-light text-primary rounded">
                       {question.question_type === QuestionType.LIKE_DISLIKE
-                        ? 'Like/Dislike'
-                        : 'Rating 1-5'}
+                        ? '👍👎 Like/Dislike'
+                        : question.question_type === QuestionType.RATING_1_5
+                        ? '⭐ Rating 1-5'
+                        : '🎯 Combined'}
                     </span>
                     {question.category && (
                       <span className="px-2 py-1 text-xs font-medium bg-muted text-muted-foreground rounded">
                         {question.category.name}
                       </span>
                     )}
-                    {question.media_url ? (
+                    {question.media_urls && question.media_urls.length > 0 ? (
+                      <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                        📸 {question.media_urls.length} Images
+                      </span>
+                    ) : question.media_url ? (
                       <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded">
-                        Has Image
+                        🖼️ 1 Image
                       </span>
                     ) : (
                       <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">
@@ -408,8 +548,26 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                     </p>
                   )}
                   
-                  {/* Current Image Preview */}
-                  {question.media_url && quickEditImageId !== question.id && (
+                  {/* Multiple Images Preview */}
+                  {question.media_urls && question.media_urls.length > 0 && quickEditImageId !== question.id && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {question.media_urls.map((url, idx) => (
+                        <div key={idx} className="relative">
+                          <img
+                            src={url}
+                            alt={`Media ${idx + 1}`}
+                            className="w-20 h-20 rounded-lg object-cover border-2 border-gray-200"
+                          />
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                            {idx + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Single Image Preview (legacy) */}
+                  {question.media_url && !question.media_urls && quickEditImageId !== question.id && (
                     <div className="mt-2 relative inline-block">
                       {question.media_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                         <img
@@ -454,13 +612,13 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                 <div className="flex sm:flex-col gap-2">
                   <Button
                     size="sm"
-                    variant={question.media_url ? 'secondary' : 'primary'}
+                    variant={(question.media_url || (question.media_urls && question.media_urls.length > 0)) ? 'secondary' : 'primary'}
                     onClick={() => setQuickEditImageId(quickEditImageId === question.id ? null : question.id)}
                     disabled={loading === question.id || loading === `image-${question.id}`}
-                    title={question.media_url ? 'Change Image' : 'Add Image'}
+                    title={(question.media_url || (question.media_urls && question.media_urls.length > 0)) ? 'Change Images' : 'Add Images'}
                   >
-                    <span className="sm:hidden">{question.media_url ? '🖼️' : '📷'}</span>
-                    <span className="hidden sm:inline">{question.media_url ? '🖼️ Change' : '📷 Add Image'}</span>
+                    <span className="sm:hidden">{(question.media_url || (question.media_urls && question.media_urls.length > 0)) ? '🖼️' : '📷'}</span>
+                    <span className="hidden sm:inline">{(question.media_url || (question.media_urls && question.media_urls.length > 0)) ? '🖼️ Edit' : '📷 Add'}</span>
                   </Button>
                   <Button
                     size="sm"

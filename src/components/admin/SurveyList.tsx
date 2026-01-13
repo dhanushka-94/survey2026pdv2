@@ -81,18 +81,41 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
           >
             {/* Header with title and status */}
             <div className="flex items-start justify-between gap-2 mb-3">
-              <h3 className="text-lg font-semibold text-foreground">
-                {survey.title}
-              </h3>
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded flex-shrink-0 ${
-                  isCurrentlyActive
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                {isCurrentlyActive ? 'Active' : 'Inactive'}
-              </span>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-foreground">
+                  {survey.title}
+                </h3>
+                {!survey.is_active && (
+                  <p className="text-xs text-orange-600 mt-1 font-medium">
+                    ⚠️ This survey is inactive - click "Activate" below to make it live
+                  </p>
+                )}
+                {survey.is_active && !isCurrentlyActive && (
+                  <p className="text-xs text-orange-600 mt-1 font-medium">
+                    ⚠️ Survey is marked active but dates are blocking it (start date: {survey.start_date ? new Date(survey.start_date).toLocaleDateString() : 'none'})
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 items-end">
+                <span
+                  className={`px-3 py-1 text-sm font-bold rounded-full flex-shrink-0 ${
+                    isCurrentlyActive
+                      ? 'bg-green-500 text-white'
+                      : 'bg-red-500 text-white'
+                  }`}
+                >
+                  {isCurrentlyActive ? '🟢 LIVE' : '🔴 OFFLINE'}
+                </span>
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded flex-shrink-0 ${
+                    survey.is_active
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  DB: {survey.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
             </div>
 
             {/* Description */}
@@ -113,48 +136,74 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
               )}
             </div>
 
+            {/* Primary Action - Activate/Deactivate */}
+            {!survey.is_active && (
+              <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+                <p className="text-sm font-semibold text-orange-800 mb-2">
+                  🚀 This survey is not active. Click below to make it live:
+                </p>
+                <Button
+                  onClick={() => handleToggleStatus(survey.id, survey.is_active)}
+                  disabled={loading === survey.id}
+                  className="w-full bg-green-500 hover:bg-green-600"
+                >
+                  {loading === survey.id ? '⏳ Activating...' : '✅ Activate Survey Now'}
+                </Button>
+              </div>
+            )}
+
+            {survey.is_active && (
+              <div className="mb-4 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-green-800">
+                    ✅ Survey is active in database
+                  </p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleToggleStatus(survey.id, survey.is_active)}
+                    disabled={loading === survey.id}
+                  >
+                    {loading === survey.id ? '⏳ Deactivating...' : '❌ Deactivate'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons - Wrap on mobile */}
             <div className="flex flex-wrap gap-2">
               <Link href={`/${adminPath}/surveys/${survey.id}`}>
                 <Button variant="secondary" size="sm">
-                  Edit
+                  ✏️ Edit
                 </Button>
               </Link>
               <Link href={`/${adminPath}/surveys/${survey.id}/categories`}>
                 <Button variant="secondary" size="sm">
-                  Categories
+                  📁 Categories
                 </Button>
               </Link>
               <Link href={`/${adminPath}/surveys/${survey.id}/questions`}>
                 <Button variant="secondary" size="sm">
-                  Questions
+                  ❓ Questions
                 </Button>
               </Link>
               <Link href={`/${adminPath}/surveys/${survey.id}/results`}>
                 <Button variant="secondary" size="sm">
-                  Results
+                  📊 Results
                 </Button>
               </Link>
               <Link href={`/${adminPath}/surveys/${survey.id}/responses`}>
                 <Button variant="secondary" size="sm">
-                  Responses
+                  💬 Responses
                 </Button>
               </Link>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleToggleStatus(survey.id, survey.is_active)}
-                disabled={loading === survey.id}
-              >
-                {survey.is_active ? 'Deactivate' : 'Activate'}
-              </Button>
               <Button
                 variant="danger"
                 size="sm"
                 onClick={() => handleDelete(survey.id, survey.title)}
                 disabled={loading === survey.id}
               >
-                Delete
+                🗑️ Delete
               </Button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { ClientSurveyRedirect } from '@/components/survey/ClientSurveyRedirect';
 import { ClearHistoryButton } from '@/components/survey/ClearHistoryButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SurveySelector } from '@/components/survey/SurveySelector';
 
 async function getAllActiveSurveys() {
   const { data: surveys, error } = await supabase
@@ -29,9 +30,13 @@ export default async function Home() {
   // Get all active surveys
   const activeSurveys = await getAllActiveSurveys();
 
-  // If there are active surveys, let client-side handle which one to show
-  // (it will skip completed ones)
-  if (activeSurveys.length > 0) {
+  // If there are multiple active surveys, show selector
+  if (activeSurveys.length > 1) {
+    return <SurveySelector surveys={activeSurveys} />;
+  }
+
+  // If there's only one survey, auto-redirect to it
+  if (activeSurveys.length === 1) {
     return (
       <Suspense fallback={
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-pink-50 to-red-50">

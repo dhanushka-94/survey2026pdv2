@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import { ToggleTest } from './toggle-test';
+
+export const dynamic = 'force-dynamic';
 
 export default async function TestDBPage() {
   let surveys = [];
@@ -8,7 +9,8 @@ export default async function TestDBPage() {
   try {
     const { data, error: fetchError } = await supabaseAdmin
       .from('surveys')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (fetchError) throw fetchError;
     surveys = data || [];
@@ -70,7 +72,22 @@ export default async function TestDBPage() {
                         </p>
                       </div>
                     </div>
-                    <ToggleTest survey={survey} />
+                    
+                    {/* Toggle Form */}
+                    <form action={`/api/test-toggle`} method="POST" className="mt-3">
+                      <input type="hidden" name="surveyId" value={survey.id} />
+                      <input type="hidden" name="newStatus" value={(!survey.is_active).toString()} />
+                      <button
+                        type="submit"
+                        className={`w-full px-4 py-2 rounded font-medium text-white ${
+                          survey.is_active
+                            ? 'bg-red-500 hover:bg-red-600'
+                            : 'bg-green-500 hover:bg-green-600'
+                        }`}
+                      >
+                        {survey.is_active ? '❌ Click to Deactivate' : '✅ Click to Activate'}
+                      </button>
+                    </form>
                   </div>
                 ))}
               </div>

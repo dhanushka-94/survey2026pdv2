@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export async function POST(request: Request) {
   try {
-    const { surveyId, newStatus } = await request.json();
+    const formData = await request.formData();
+    const surveyId = formData.get('surveyId') as string;
+    const newStatus = formData.get('newStatus') === 'true';
 
     console.log('Attempting to toggle survey:', surveyId, 'to', newStatus);
 
@@ -16,24 +19,21 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Supabase error:', error);
-      return NextResponse.json({
-        success: false,
-        error: error.message,
-        details: error,
-      });
+      return new Response(
+        `<html><body><h1>Error</h1><p>${error.message}</p><a href="/test-db">Go Back</a></body></html>`,
+        { headers: { 'Content-Type': 'text/html' } }
+      );
     }
 
     console.log('Toggle successful:', data);
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    // Redirect back to test page
+    return redirect('/test-db');
   } catch (error: any) {
     console.error('API error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message,
-    });
+    return new Response(
+      `<html><body><h1>Error</h1><p>${error.message}</p><a href="/test-db">Go Back</a></body></html>`,
+      { headers: { 'Content-Type': 'text/html' } }
+    );
   }
 }

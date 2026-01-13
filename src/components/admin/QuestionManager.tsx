@@ -187,8 +187,9 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
   };
 
   const questionTypeOptions = [
-    { value: QuestionType.LIKE_DISLIKE, label: 'Like / Dislike' },
-    { value: QuestionType.RATING_1_5, label: 'Rating 1-5' },
+    { value: QuestionType.LIKE_DISLIKE, label: '👍👎 Like / Dislike' },
+    { value: QuestionType.RATING_1_5, label: '⭐ Rating 1-5' },
+    { value: QuestionType.COMBINED, label: '🎯 Combined (Both)' },
   ];
 
   const categoryOptions = categories.map((cat) => ({

@@ -8,7 +8,9 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LikeDislikeInput } from './LikeDislikeInput';
 import { RatingInput } from './RatingInput';
+import { CombinedInput } from './CombinedInput';
 import { BlurredMedia } from './BlurredMedia';
+import { MultipleImages } from './MultipleImages';
 import type { Question, DemographicsData } from '@/lib/types';
 
 interface QuestionStepProps {
@@ -111,7 +113,21 @@ export function QuestionStep({
             )}
           </div>
 
-          {question.media_url && (
+          {/* Multiple Images */}
+          {question.media_urls && Array.isArray(question.media_urls) && question.media_urls.length > 0 && (
+            <div className="mb-4">
+              <MultipleImages
+                urls={question.media_urls}
+                alt="Question media"
+                surveyId={surveyId}
+                questionId={question.id}
+                sessionId={sessionId}
+              />
+            </div>
+          )}
+
+          {/* Single Image (legacy) */}
+          {question.media_url && !question.media_urls && (
             <div className="mb-4">
               <BlurredMedia
                 src={question.media_url}
@@ -127,8 +143,12 @@ export function QuestionStep({
           <div className="mt-6">
             {question.question_type === 'like_dislike' ? (
               <LikeDislikeInput value={selectedValue} onChange={setSelectedValue} />
-            ) : (
+            ) : question.question_type === 'rating_1_5' ? (
               <RatingInput value={selectedValue} onChange={setSelectedValue} />
+            ) : question.question_type === 'combined' ? (
+              <CombinedInput value={selectedValue} onChange={setSelectedValue} />
+            ) : (
+              <LikeDislikeInput value={selectedValue} onChange={setSelectedValue} />
             )}
           </div>
 

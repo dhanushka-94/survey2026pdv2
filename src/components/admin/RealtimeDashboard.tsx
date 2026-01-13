@@ -88,8 +88,8 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📊</div>
         <p className="text-muted-foreground text-lg">
-          No surveys available. Create a survey first.
-        </p>
+        No surveys available. Create a survey first.
+      </p>
       </div>
     );
   }
@@ -120,15 +120,15 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
 
       {/* Survey Selector */}
       <div className="bg-white p-4 rounded-xl border border-border shadow-sm">
-        <Select
+      <Select
           label="📋 Select Survey"
-          options={surveyOptions}
-          value={selectedSurveyId}
+        options={surveyOptions}
+        value={selectedSurveyId}
           onChange={(e) => {
             setSelectedSurveyId(e.target.value);
             setIsLoading(true);
           }}
-        />
+      />
         {selectedSurvey && (
           <p className="text-xs text-muted-foreground mt-2">
             Monitoring: <span className="font-semibold">{selectedSurvey.title}</span>
@@ -149,7 +149,7 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12"></div>
               <div className="relative">
                 <div className="text-5xl font-extrabold text-primary mb-2 flex items-center gap-3">
-                  {stats.total_active_users}
+                {stats.total_active_users}
                   {stats.total_active_users > 0 && (
                     <span className="text-2xl animate-bounce">👥</span>
                   )}
@@ -159,7 +159,7 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                 </p>
                 <p className="text-xs text-primary/70 mt-1">
                   Last 2 minutes
-                </p>
+              </p>
               </div>
             </div>
 
@@ -167,11 +167,11 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-100/30 rounded-full -mr-12 -mt-12"></div>
               <div className="relative">
                 <div className="text-5xl font-extrabold text-blue-600 mb-2">
-                  {stats.active_sessions.length}
+                {stats.active_sessions.length}
                 </div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Sessions
-                </p>
+                Total Sessions
+              </p>
                 <p className="text-xs text-blue-600/70 mt-1">
                   Currently tracked
                 </p>
@@ -182,15 +182,15 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
               <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100/30 rounded-full -mr-12 -mt-12"></div>
               <div className="relative">
                 <div className="text-4xl font-extrabold text-purple-600 mb-2 flex items-center gap-2">
-                  {formatTimeSpent(Math.round(stats.average_time_per_question))}
+                {formatTimeSpent(Math.round(stats.average_time_per_question))}
                   <span className="text-2xl">⏱️</span>
                 </div>
                 <p className="text-sm font-medium text-muted-foreground">
                   Avg. Time
-                </p>
+              </p>
                 <p className="text-xs text-purple-600/70 mt-1">
                   Per question
-                </p>
+              </p>
               </div>
             </div>
           </div>
@@ -238,8 +238,8 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
               <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl bg-muted/20">
                 <div className="text-6xl mb-4 opacity-30">😴</div>
                 <p className="text-muted-foreground text-lg font-medium">
-                  No active users at the moment
-                </p>
+                No active users at the moment
+              </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Users will appear here when they start taking the survey
                 </p>
@@ -251,8 +251,8 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                   const isVeryRecent = secondsSinceActive < 10;
                   
                   return (
-                    <div
-                      key={session.session_id}
+                  <div
+                    key={session.session_id}
                       className={`relative p-5 border-2 rounded-xl transition-all duration-300 hover:shadow-lg ${
                         isVeryRecent 
                           ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md' 
@@ -282,8 +282,8 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {secondsSinceActive}s ago
-                            </span>
-                          </div>
+                          </span>
+                        </div>
 
                           {/* Progress Info */}
                           <div className="space-y-2">
@@ -291,7 +291,7 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                               <span className="text-sm font-semibold text-foreground">
                                 📄 Page {session.current_page}
                               </span>
-                              {session.question_text && (
+                        {session.question_text && (
                                 <span className="text-xs text-muted-foreground">
                                   • Current question
                                 </span>
@@ -304,10 +304,10 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                                   Currently viewing:
                                 </p>
                                 <p className="text-sm text-foreground font-medium line-clamp-2">
-                                  {session.question_text}
-                                </p>
+                            {session.question_text}
+                          </p>
                               </div>
-                            )}
+                        )}
                           </div>
                         </div>
 
@@ -362,8 +362,8 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📊</div>
           <p className="text-muted-foreground text-lg">
-            No data available
-          </p>
+          No data available
+        </p>
         </div>
       )}
     </div>

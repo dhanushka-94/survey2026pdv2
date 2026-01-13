@@ -28,9 +28,9 @@ export default async function SurveysPage({
         title="Surveys"
         description="Manage your surveys, categories, and questions"
         actions={
-          <Link href={`/${admin}/surveys/new`}>
-            <Button size="sm" className="sm:size-default">Create Survey</Button>
-          </Link>
+            <Link href={`/${admin}/surveys/new`}>
+              <Button size="sm" className="sm:size-default">Create Survey</Button>
+            </Link>
         }
       />
       <div className="max-w-7xl mx-auto p-6">

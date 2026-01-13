@@ -25,6 +25,7 @@ export interface Question {
   question_text: string;
   description: string | null;
   media_url: string | null;
+  media_urls: string[] | null; // Multiple images
   question_type: QuestionType;
   order_index: number;
   created_at: string;
@@ -55,7 +56,8 @@ export interface SessionTracking {
 // Enums
 export enum QuestionType {
   LIKE_DISLIKE = 'like_dislike',
-  RATING_1_5 = 'rating_1_5'
+  RATING_1_5 = 'rating_1_5',
+  COMBINED = 'combined' // Both like/dislike AND rating
 }
 
 export enum AgeRange {
@@ -94,6 +96,7 @@ export interface QuestionFormData {
   question_text: string;
   description: string;
   media_url: string;
+  media_urls?: string[]; // Multiple images
   question_type: QuestionType;
   order_index: number;
 }

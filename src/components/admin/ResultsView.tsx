@@ -105,8 +105,8 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     {calculatePercentage(sortedByLikes[0].like_count || 0, sortedByLikes[0].total_responses)}% liked
-                  </p>
-                </div>
+              </p>
+            </div>
               )}
               
               {/* Average rating insight */}
@@ -115,11 +115,11 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   <p className="text-xs text-blue-600 font-medium mb-1">⭐ Avg Rating</p>
                   <p className="text-2xl font-bold text-primary">
                     {overallAvgRating.toFixed(1)} / 5
-                  </p>
+              </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     Across {ratingQuestions.length} questions
-                  </p>
-                </div>
+              </p>
+            </div>
               )}
 
               {/* Device breakdown */}
@@ -128,10 +128,10 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   <p className="text-xs text-blue-600 font-medium mb-1">📱 Top Device</p>
                   <p className="text-sm font-medium text-foreground capitalize">
                     {Object.entries(results.by_device || {}).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
-                  </p>
+              </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {Object.entries(results.by_device || {}).sort((a, b) => b[1] - a[1])[0]?.[1] || 0} users
-                  </p>
+              </p>
                 </div>
               )}
             </div>
@@ -191,22 +191,22 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   .map(([gender, count]) => {
                   const genderEmoji = gender === 'male' ? '👨' : gender === 'female' ? '👩' : '🧑';
                   return (
-                    <div key={gender}>
-                      <div className="flex justify-between mb-1">
+                  <div key={gender}>
+                    <div className="flex justify-between mb-1">
                         <span className="text-sm font-medium capitalize flex items-center gap-1">
                           {genderEmoji} {gender.replace('_', ' ')}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {count} ({calculatePercentage(count, results.total_responses)}%)
-                        </span>
-                      </div>
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {count} ({calculatePercentage(count, results.total_responses)}%)
+                      </span>
+                    </div>
                       <div className="w-full bg-muted rounded-full h-3">
-                        <div
+                      <div
                           className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all"
                           style={{ width: `${calculatePercentage(count, results.total_responses)}%` }}
-                        />
-                      </div>
+                      />
                     </div>
+                  </div>
                   );
                 })}
               </div>
@@ -232,13 +232,13 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   .sort((a, b) => b[1] - a[1])
                   .map(([device, count]) => (
                   <div key={device} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                    <span className="text-sm font-medium capitalize flex items-center gap-2">
+                      <span className="text-sm font-medium capitalize flex items-center gap-2">
                       {device === 'mobile' ? '📱' : device === 'tablet' ? '📲' : '🖥️'}
-                      {device}
-                    </span>
+                        {device}
+                      </span>
                     <span className="text-sm font-bold text-blue-600">
-                      {count} ({calculatePercentage(count, results.total_responses)}%)
-                    </span>
+                        {count} ({calculatePercentage(count, results.total_responses)}%)
+                      </span>
                   </div>
                 ))}
               </div>
@@ -263,8 +263,8 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   <div key={browser} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                     <span className="text-sm font-medium">{browser}</span>
                     <span className="text-sm font-bold text-green-600">
-                      {count} ({calculatePercentage(count, results.total_responses)}%)
-                    </span>
+                        {count} ({calculatePercentage(count, results.total_responses)}%)
+                      </span>
                   </div>
                 ))}
               </div>
@@ -289,8 +289,8 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                   <div key={os} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                     <span className="text-sm font-medium">{os}</span>
                     <span className="text-sm font-bold text-purple-600">
-                      {count} ({calculatePercentage(count, results.total_responses)}%)
-                    </span>
+                        {count} ({calculatePercentage(count, results.total_responses)}%)
+                      </span>
                   </div>
                 ))}
               </div>
@@ -331,20 +331,20 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                       className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
                     >
                       <div className="flex items-start gap-4">
-                        {/* Image Thumbnail */}
-                        {mediaUrl && (
-                          <img
-                            src={mediaUrl}
-                            alt="Question media"
+                      {/* Image Thumbnail */}
+                      {mediaUrl && (
+                        <img
+                          src={mediaUrl}
+                          alt="Question media"
                             className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                          />
-                        )}
-                        
-                        <div className="flex-1 min-w-0">
+                        />
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="px-2 py-1 text-xs font-bold bg-primary/10 text-primary rounded">
-                              Q{index + 1}
-                            </span>
+                            Q{index + 1}
+                          </span>
                             <span className={`px-2 py-1 text-xs font-medium rounded ${
                               question.question_type === 'like_dislike' 
                                 ? 'bg-blue-100 text-blue-700' 
@@ -352,7 +352,7 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                             }`}>
                               {question.question_type === 'like_dislike' ? '👍👎 Like/Dislike' : '⭐ Rating'}
                             </span>
-                            {questionHasMedia && (
+                          {questionHasMedia && (
                               <span className={`px-2 py-1 text-xs font-medium rounded ${
                                 viewCount > 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                               }`}>
@@ -385,7 +385,7 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                               <span className="text-lg font-bold text-primary">
                                 {question.average_rating?.toFixed(1) || '0.0'} ⭐
                               </span>
-                            )}
+                          )}
                           </div>
                         </div>
 
@@ -401,72 +401,72 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
                     {/* Expanded Details */}
                     {isExpanded && (
                       <div className="border-t border-border p-4 bg-muted/20">
-                        {/* Stats Row */}
+                    {/* Stats Row */}
                         <div className="flex flex-wrap gap-4 mb-4 p-3 bg-white rounded-lg border border-border">
-                          <div className="text-center">
+                      <div className="text-center">
                             <p className="text-2xl font-bold text-primary">{question.total_responses}</p>
-                            <p className="text-xs text-muted-foreground">Responses</p>
-                          </div>
-                          {questionHasMedia && (
+                        <p className="text-xs text-muted-foreground">Responses</p>
+                      </div>
+                      {questionHasMedia && (
                             <>
                               <div className="text-center border-l border-border pl-4">
                                 <p className="text-2xl font-bold text-blue-600">{viewCount}</p>
-                                <p className="text-xs text-muted-foreground">Image Views</p>
-                              </div>
+                          <p className="text-xs text-muted-foreground">Image Views</p>
+                        </div>
                               <div className="text-center border-l border-border pl-4">
                                 <p className="text-2xl font-bold text-purple-600">
                                   {question.total_responses > 0 ? calculatePercentage(viewCount, question.total_responses) : 0}%
-                                </p>
-                                <p className="text-xs text-muted-foreground">View Rate</p>
-                              </div>
-                            </>
-                          )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">View Rate</p>
                         </div>
+                            </>
+                      )}
+                    </div>
 
-                        {/* Results */}
-                        {question.question_type === 'like_dislike' ? (
+                    {/* Results */}
+                    {question.question_type === 'like_dislike' ? (
                           <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
                               <div className="text-4xl mb-2">👍</div>
                               <p className="text-3xl font-bold text-green-600">{question.like_count || 0}</p>
                               <p className="text-sm text-green-700 mt-1">
                                 {calculatePercentage(question.like_count || 0, question.total_responses)}% Like
-                              </p>
-                            </div>
+                          </p>
+                        </div>
                             <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200">
                               <div className="text-4xl mb-2">👎</div>
                               <p className="text-3xl font-bold text-red-600">{question.dislike_count || 0}</p>
                               <p className="text-sm text-red-700 mt-1">
                                 {calculatePercentage(question.dislike_count || 0, question.total_responses)}% Dislike
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
                             <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
                               <span className="text-sm font-medium">Average Rating</span>
                               <span className="text-2xl font-bold text-primary">
                                 {question.average_rating?.toFixed(2) || '0.00'} / 5 ⭐
-                              </span>
-                            </div>
+                          </span>
+                        </div>
                             {[5, 4, 3, 2, 1].map((rating) => {
-                              const count = question[`rating_${rating}` as keyof typeof question] as number || 0;
+                          const count = question[`rating_${rating}` as keyof typeof question] as number || 0;
                               const percentage = calculatePercentage(count, question.total_responses);
-                              return (
+                          return (
                                 <div key={rating} className="flex items-center gap-3">
                                   <span className="w-16 text-sm font-medium">{'⭐'.repeat(rating)}</span>
                                   <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
-                                    <div
+                                <div
                                       className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-4 transition-all"
                                       style={{ width: `${percentage}%` }}
-                                    />
-                                  </div>
+                                />
+                              </div>
                                   <span className="w-20 text-sm text-right text-muted-foreground">
                                     {count} ({percentage}%)
                                   </span>
-                                </div>
-                              );
-                            })}
+                            </div>
+                          );
+                        })}
                           </div>
                         )}
 

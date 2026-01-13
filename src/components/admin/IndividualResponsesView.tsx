@@ -266,46 +266,46 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
                         const isImageExpanded = expandedImages.has(imageKey);
                         
                         return (
-                          <div
-                            key={answer.question_id}
-                            className="p-3 bg-white rounded-lg border border-border"
-                          >
+                        <div
+                          key={answer.question_id}
+                          className="p-3 bg-white rounded-lg border border-border"
+                        >
                             <div className="flex flex-col gap-3">
                               {/* Question header row */}
-                              <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
-                                {/* Question info */}
-                                <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+                            {/* Question info */}
+                            <div className="flex-1 min-w-0">
                                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                                      Q{answerIndex + 1}
-                                    </span>
-                                    {answer.has_media && (
-                                      answer.media_viewed ? (
+                                <span className="text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                  Q{answerIndex + 1}
+                                </span>
+                                {answer.has_media && (
+                                  answer.media_viewed ? (
                                         <button
                                           onClick={() => toggleImageExpand(imageKey)}
                                           className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1 hover:bg-green-200 transition-colors cursor-pointer"
                                         >
                                           👁️ Viewed {isImageExpanded ? '(hide)' : '(show)'}
                                         </button>
-                                      ) : (
-                                        <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-1">
-                                          🙈 Not viewed
-                                        </span>
-                                      )
-                                    )}
-                                    <span className="text-xs text-muted-foreground">
-                                      ⏱️ {formatTime(answer.time_spent_seconds)}
+                                  ) : (
+                                    <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-1">
+                                      🙈 Not viewed
                                     </span>
-                                  </div>
-                                  <p className="text-sm text-foreground">
-                                    {answer.question_text}
-                                  </p>
-                                </div>
-                                
-                                {/* Answer value */}
-                                <div className="flex-shrink-0">
-                                  {getAnswerDisplay(answer.answer_value, answer.question_type)}
-                                </div>
+                                  )
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  ⏱️ {formatTime(answer.time_spent_seconds)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-foreground">
+                                {answer.question_text}
+                              </p>
+                            </div>
+                            
+                            {/* Answer value */}
+                            <div className="flex-shrink-0">
+                              {getAnswerDisplay(answer.answer_value, answer.question_type)}
+                            </div>
                               </div>
 
                               {/* Show image if viewed and expanded */}
@@ -338,8 +338,8 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
                                   </p>
                                 </div>
                               )}
-                            </div>
                           </div>
+                        </div>
                         );
                       })}
                     </div>

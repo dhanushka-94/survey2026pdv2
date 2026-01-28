@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { AggregatedResults, QuestionResult } from '@/lib/types';
 
@@ -272,5 +273,101 @@ export async function getIndividualResponses(surveyId: string): Promise<{
   } catch (error) {
     console.error('Get individual responses error:', error);
     return { success: false, error: 'Failed to fetch individual responses' };
+  }
+}
+
+// Delete a single response by ID
+export async function deleteResponse(responseId: string, surveyId: string) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('responses')
+      .delete()
+      .eq('id', responseId);
+
+    if (error) throw error;
+
+    revalidatePath(`/[admin]/surveys/${surveyId}/responses`);
+    revalidatePath(`/[admin]/surveys/${surveyId}/results`);
+    return { success: true };
+  } catch (error) {
+    console.error('Delete response error:', error);
+    return { success: false, error: 'Failed to delete response' };
+  }
+}
+
+// Delete all responses for a session (one user's complete survey response)
+export async function deleteSessionResponses(sessionId: string, surveyId: string) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('responses')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('survey_id', surveyId);
+
+    if (error) throw error;
+
+    // Also delete related media views and session tracking
+    await supabaseAdmin
+      .from('media_views')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('survey_id', surveyId);
+
+    await supabaseAdmin
+      .from('session_tracking')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('survey_id', surveyId);
+
+    revalidatePath(`/[admin]/surveys/${surveyId}/responses`);
+    revalidatePath(`/[admin]/surveys/${surveyId}/results`);
+    return { success: true };
+  } catch (error) {
+    console.error('Delete session responses error:', error);
+    return { success: false, error: 'Failed to delete session responses' };
+  }
+}
+
+// Delete ALL responses for a survey
+export async function deleteAllSurveyResponses(surveyId: string) {
+  try {
+    // Get all session IDs first
+    const { data: responses } = await supabaseAdmin
+      .from('responses')
+      .select('session_id')
+      .eq('survey_id', surveyId);
+
+    const sessionIds = [...new Set((responses || []).map(r => r.session_id))];
+
+    // Delete all responses
+    const { error: responsesError } = await supabaseAdmin
+      .from('responses')
+      .delete()
+      .eq('survey_id', surveyId);
+
+    if (responsesError) throw responsesError;
+
+    // Delete all media views for this survey
+    await supabaseAdmin
+      .from('media_views')
+      .delete()
+      .eq('survey_id', surveyId);
+
+    // Delete all session tracking for this survey
+    await supabaseAdmin
+      .from('session_tracking')
+      .delete()
+      .eq('survey_id', surveyId);
+
+    revalidatePath(`/[admin]/surveys/${surveyId}/responses`);
+    revalidatePath(`/[admin]/surveys/${surveyId}/results`);
+    return { 
+      success: true,
+      deletedCount: responses?.length || 0,
+      deletedSessions: sessionIds.length
+    };
+  } catch (error) {
+    console.error('Delete all survey responses error:', error);
+    return { success: false, error: 'Failed to delete all responses' };
   }
 }

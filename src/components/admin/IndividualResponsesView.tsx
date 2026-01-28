@@ -1,22 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatDateTime } from '@/lib/utils';
+import { deleteSessionResponses } from '@/actions/responses';
 import type { IndividualResponse } from '@/actions/responses';
 
 interface IndividualResponsesViewProps {
   responses: IndividualResponse[];
   surveyTitle: string;
+  surveyId: string;
 }
 
-export function IndividualResponsesView({ responses, surveyTitle }: IndividualResponsesViewProps) {
+export function IndividualResponsesView({ responses, surveyTitle, surveyId }: IndividualResponsesViewProps) {
+  const router = useRouter();
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDevice, setFilterDevice] = useState<string>('all');
   const [expandedImages, setExpandedImages] = useState<Set<string>>(new Set());
+  const [deletingSession, setDeletingSession] = useState<string | null>(null);
 
   const toggleImageExpand = (key: string) => {
     setExpandedImages(prev => {
@@ -53,6 +58,26 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
   };
 
   const getAnswerDisplay = (answer: string, type: string) => {
+    // Handle combined type (JSON format)
+    if (type === 'combined') {
+      try {
+        const parsed = JSON.parse(answer);
+        return (
+          <div className="flex flex-col gap-1">
+            <span className={parsed.like === 'like' ? 'text-green-600' : 'text-red-600'}>
+              {parsed.like === 'like' ? '👍 Like' : '👎 Dislike'}
+            </span>
+            <span className="text-primary font-medium flex items-center gap-1">
+              <span className="text-lg">{'⭐'.repeat(parseInt(parsed.rating || '0'))}</span>
+              <span className="text-sm text-muted-foreground">({parsed.rating}/5)</span>
+            </span>
+          </div>
+        );
+      } catch {
+        return <span className="text-muted-foreground">Invalid answer</span>;
+      }
+    }
+
     if (type === 'like_dislike') {
       return answer === 'like' ? (
         <span className="text-green-600 font-medium flex items-center gap-1">
@@ -80,6 +105,27 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
     : 0;
   const mobileCount = responses.filter(r => r.device_type === 'mobile').length;
   const desktopCount = responses.filter(r => r.device_type === 'desktop').length;
+
+  const handleDeleteSession = async (sessionId: string, displayName: string) => {
+    if (!confirm(`Are you sure you want to delete all responses from "${displayName}"?\n\nThis will permanently delete:\n- All answers from this user\n- Media view tracking\n- Session tracking data\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingSession(sessionId);
+    try {
+      const result = await deleteSessionResponses(sessionId, surveyId);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || 'Failed to delete responses');
+      }
+    } catch (error) {
+      alert('An error occurred while deleting');
+      console.error(error);
+    } finally {
+      setDeletingSession(null);
+    }
+  };
 
   if (responses.length === 0) {
     return (
@@ -182,65 +228,81 @@ export function IndividualResponsesView({ responses, surveyTitle }: IndividualRe
                 className="border border-border rounded-lg overflow-hidden bg-white"
               >
                 {/* Header - Always visible */}
-                <button
-                  onClick={() => setExpandedSession(
-                    expandedSession === response.session_id ? null : response.session_id
-                  )}
-                  className="w-full p-3 sm:p-4 hover:bg-muted/30 transition-colors text-left"
-                >
+                <div className="p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    {/* Left side - Device name and info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-                        {response.device_type === 'mobile' ? '📱' : response.device_type === 'tablet' ? '📲' : '🖥️'}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground text-sm sm:text-base">
-                          {response.display_name}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                          <span>{response.os}</span>
-                          <span>•</span>
-                          <span className="capitalize">{response.gender.replace('_', ' ')}</span>
-                          <span>•</span>
-                          <span>{response.age_range}</span>
+                    <button
+                      onClick={() => setExpandedSession(
+                        expandedSession === response.session_id ? null : response.session_id
+                      )}
+                      className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-muted/30 transition-colors text-left rounded p-2 -m-2"
+                    >
+                      {/* Left side - Device name and info */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
+                          {response.device_type === 'mobile' ? '📱' : response.device_type === 'tablet' ? '📲' : '🖥️'}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground text-sm sm:text-base">
+                            {response.display_name}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                            <span>{response.os}</span>
+                            <span>•</span>
+                            <span className="capitalize">{response.gender.replace('_', ' ')}</span>
+                            <span>•</span>
+                            <span>{response.age_range}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right side - Stats */}
-                    <div className="flex items-center gap-3 sm:gap-4 ml-13 sm:ml-0">
-                      <div className="text-center">
-                        <p className="text-sm sm:text-base font-semibold text-blue-600">
-                          {formatTime(response.total_time_seconds)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Time</p>
+                      {/* Right side - Stats */}
+                      <div className="flex items-center gap-3 sm:gap-4 ml-13 sm:ml-0">
+                        <div className="text-center">
+                          <p className="text-sm sm:text-base font-semibold text-blue-600">
+                            {formatTime(response.total_time_seconds)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Time</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm sm:text-base font-semibold text-foreground">
+                            {response.answers.length}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Answers</p>
+                        </div>
+                        <div className="text-center hidden sm:block">
+                          <p className="text-sm font-semibold text-green-600">
+                            {response.answers.filter(a => a.has_media && a.media_viewed).length}/{response.answers.filter(a => a.has_media).length}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Images</p>
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-muted-foreground transition-transform ${
+                            expandedSession === response.session_id ? 'rotate-180' : ''
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm sm:text-base font-semibold text-foreground">
-                          {response.answers.length}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Answers</p>
-                      </div>
-                      <div className="text-center hidden sm:block">
-                        <p className="text-sm font-semibold text-green-600">
-                          {response.answers.filter(a => a.has_media && a.media_viewed).length}/{response.answers.filter(a => a.has_media).length}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Images</p>
-                      </div>
-                      <svg
-                        className={`w-5 h-5 text-muted-foreground transition-transform ${
-                          expandedSession === response.session_id ? 'rotate-180' : ''
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
+                    </button>
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSession(response.session_id, response.display_name);
+                      }}
+                      disabled={deletingSession === response.session_id}
+                      className="flex-shrink-0"
+                    >
+                      {deletingSession === response.session_id ? '⏳ Deleting...' : '🗑️ Delete'}
+                    </Button>
                   </div>
-                </button>
+                </div>
 
                 {/* Expanded content - Detailed answers */}
                 {expandedSession === response.session_id && (

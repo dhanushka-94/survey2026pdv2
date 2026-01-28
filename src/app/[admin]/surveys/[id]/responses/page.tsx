@@ -5,6 +5,7 @@ import { getSurvey } from '@/actions/surveys';
 import { getIndividualResponses } from '@/actions/responses';
 import { Button } from '@/components/ui/Button';
 import { IndividualResponsesView } from '@/components/admin/IndividualResponsesView';
+import { DeleteAllResponsesButton } from '@/components/admin/DeleteAllResponsesButton';
 
 export default async function IndividualResponsesPage({
   params,
@@ -39,7 +40,7 @@ export default async function IndividualResponsesPage({
               {surveyResult.data.title}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link href={`/${admin}/surveys/${id}/results`}>
               <Button variant="secondary" size="sm">
                 Aggregated Results
@@ -53,9 +54,18 @@ export default async function IndividualResponsesPage({
           </div>
         </div>
 
+        {/* Delete All Button */}
+        <div className="mb-4">
+          <DeleteAllResponsesButton
+            surveyId={id}
+            responseCount={responsesResult.success ? responsesResult.data?.length || 0 : 0}
+          />
+        </div>
+
         <IndividualResponsesView 
           responses={responsesResult.success ? responsesResult.data || [] : []}
           surveyTitle={surveyResult.data.title}
+          surveyId={id}
         />
       </div>
     </div>

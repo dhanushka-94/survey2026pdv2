@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { formatDateTime } from '@/lib/utils';
-import { deleteSessionResponses } from '@/actions/responses';
+import { deleteSessionResponses, deleteResponse } from '@/actions/responses';
 import type { IndividualResponse } from '@/actions/responses';
 
 interface IndividualResponsesViewProps {
@@ -22,6 +22,7 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
   const [filterDevice, setFilterDevice] = useState<string>('all');
   const [expandedImages, setExpandedImages] = useState<Set<string>>(new Set());
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
+  const [deletingResponse, setDeletingResponse] = useState<string | null>(null);
 
   const toggleImageExpand = (key: string) => {
     setExpandedImages(prev => {
@@ -124,6 +125,27 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
       console.error(error);
     } finally {
       setDeletingSession(null);
+    }
+  };
+
+  const handleDeleteIndividualResponse = async (responseId: string, questionText: string) => {
+    if (!confirm(`Are you sure you want to delete this answer?\n\nQuestion: "${questionText}"\n\nThis will permanently delete this single response.\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingResponse(responseId);
+    try {
+      const result = await deleteResponse(responseId, surveyId);
+      if (result.success) {
+        router.refresh();
+      } else {
+        alert(result.error || 'Failed to delete response');
+      }
+    } catch (error) {
+      alert('An error occurred while deleting');
+      console.error(error);
+    } finally {
+      setDeletingResponse(null);
     }
   };
 
@@ -365,8 +387,23 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
                             </div>
                             
                             {/* Answer value */}
-                            <div className="flex-shrink-0">
-                              {getAnswerDisplay(answer.answer_value, answer.question_type)}
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="flex-shrink-0">
+                                {getAnswerDisplay(answer.answer_value, answer.question_type)}
+                              </div>
+                              {/* Delete Individual Answer Button */}
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteIndividualResponse(answer.response_id, answer.question_text);
+                                }}
+                                disabled={deletingResponse === answer.response_id}
+                                className="text-xs"
+                              >
+                                {deletingResponse === answer.response_id ? '⏳' : '🗑️'}
+                              </Button>
                             </div>
                               </div>
 

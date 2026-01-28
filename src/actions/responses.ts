@@ -145,6 +145,7 @@ export async function getAggregatedResults(surveyId: string): Promise<{ success:
 
 // Get individual responses grouped by user/session
 export interface IndividualAnswer {
+  response_id: string; // ID of the response record in database
   question_id: string;
   question_text: string;
   question_type: string;
@@ -244,6 +245,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       const mediaViewed = viewedMedia.has(`${sid}-${response.question_id}`);
       
       sessionMap[sid].answers.push({
+        response_id: response.id, // Include response ID for deletion
         question_id: response.question_id,
         question_text: response.question?.question_text || 'Unknown',
         question_type: response.question?.question_type || 'unknown',

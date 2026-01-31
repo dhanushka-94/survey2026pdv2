@@ -242,3 +242,36 @@ export function getDeviceInfo(): DeviceInfo {
   
   return { device_type, browser, os };
 }
+
+// Parse user-agent string (for server-side visitor logging)
+export function getDeviceInfoFromUA(ua: string): DeviceInfo {
+  if (!ua) {
+    return { device_type: 'desktop', browser: 'Unknown', os: 'Unknown' };
+  }
+
+  let device_type: 'mobile' | 'tablet' | 'desktop' = 'desktop';
+  if (/iPad|Android(?!.*Mobile)|Tablet/i.test(ua)) {
+    device_type = 'tablet';
+  } else if (/Mobile|iPhone|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+    device_type = 'mobile';
+  }
+
+  let browser = 'Unknown';
+  if (/Edg\//i.test(ua)) browser = 'Edge';
+  else if (/Chrome/i.test(ua) && !/Chromium/i.test(ua)) browser = 'Chrome';
+  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+  else if (/Firefox/i.test(ua)) browser = 'Firefox';
+  else if (/MSIE|Trident/i.test(ua)) browser = 'Internet Explorer';
+  else if (/Opera|OPR/i.test(ua)) browser = 'Opera';
+  else if (/Samsung/i.test(ua)) browser = 'Samsung Browser';
+
+  let os = 'Unknown';
+  if (/Windows/i.test(ua)) os = 'Windows';
+  else if (/Mac OS X/i.test(ua) && !/iPhone|iPad|iPod/i.test(ua)) os = 'macOS';
+  else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+  else if (/Android/i.test(ua)) os = 'Android';
+  else if (/Linux/i.test(ua)) os = 'Linux';
+  else if (/CrOS/i.test(ua)) os = 'Chrome OS';
+
+  return { device_type, browser, os };
+}

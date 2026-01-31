@@ -38,6 +38,11 @@ export function AdminHeader({ adminPath, title, description, actions }: AdminHea
                 📋 Surveys
               </Button>
             </Link>
+            <Link href={`/${adminPath}/visitors`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                👥 Visitors
+              </Button>
+            </Link>
           </div>
           
           <button

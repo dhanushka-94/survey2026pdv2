@@ -8,6 +8,8 @@ export async function updateSessionTracking(data: {
   session_id: string;
   current_page: number;
   question_id?: string;
+  latitude?: number;
+  longitude?: number;
 }) {
   try {
     // Check if session exists
@@ -29,32 +31,40 @@ export async function updateSessionTracking(data: {
       const lastActive = new Date(existing.last_active_at);
       const timeSpentSeconds = Math.floor((Date.now() - lastActive.getTime()) / 1000);
 
-      // Update existing session
+      // Update existing session (include GPS if provided)
+      const updatePayload: Record<string, unknown> = {
+        current_page: data.current_page,
+        question_id: data.question_id || null,
+        time_spent_seconds: existing.time_spent_seconds + timeSpentSeconds,
+        last_active_at: now,
+      };
+      if (data.latitude != null && data.longitude != null) {
+        updatePayload.latitude = data.latitude;
+        updatePayload.longitude = data.longitude;
+      }
       const { error: updateError } = await supabaseAdmin
         .from('session_tracking')
-        .update({
-          current_page: data.current_page,
-          question_id: data.question_id || null,
-          time_spent_seconds: existing.time_spent_seconds + timeSpentSeconds,
-          last_active_at: now,
-        })
+        .update(updatePayload)
         .eq('id', existing.id);
 
       if (updateError) throw updateError;
     } else {
-      // Insert new session
+      // Insert new session (include GPS if provided)
+      const insertPayload: Record<string, unknown> = {
+        survey_id: data.survey_id,
+        session_id: data.session_id,
+        current_page: data.current_page,
+        question_id: data.question_id || null,
+        time_spent_seconds: 0,
+        last_active_at: now,
+      };
+      if (data.latitude != null && data.longitude != null) {
+        insertPayload.latitude = data.latitude;
+        insertPayload.longitude = data.longitude;
+      }
       const { error: insertError } = await supabaseAdmin
         .from('session_tracking')
-        .insert([
-          {
-            survey_id: data.survey_id,
-            session_id: data.session_id,
-            current_page: data.current_page,
-            question_id: data.question_id || null,
-            time_spent_seconds: 0,
-            last_active_at: now,
-          },
-        ]);
+        .insert([insertPayload]);
 
       if (insertError) throw insertError;
     }
@@ -91,6 +101,8 @@ export async function getActiveSessions(surveyId: string): Promise<{ success: bo
       question_text: session.question?.question_text,
       time_spent_seconds: session.time_spent_seconds,
       last_active_at: session.last_active_at,
+      latitude: session.latitude ?? null,
+      longitude: session.longitude ?? null,
     }));
 
     const totalTimeSpent = activeSessions.reduce(
@@ -113,6 +125,60 @@ export async function getActiveSessions(surveyId: string): Promise<{ success: bo
   } catch (error) {
     console.error('Get active sessions error:', error);
     return { success: false, error: 'Failed to fetch active sessions' };
+  }
+}
+
+export interface GpsLocation {
+  id: string;
+  survey_id: string;
+  survey_title: string;
+  session_id: string;
+  latitude: number;
+  longitude: number;
+  last_active_at: string;
+  current_page: number;
+}
+
+export async function getGpsLocations(): Promise<{
+  success: boolean;
+  data?: GpsLocation[];
+  error?: string;
+}> {
+  try {
+    const { data: sessions, error } = await supabaseAdmin
+      .from('session_tracking')
+      .select(`
+        id,
+        survey_id,
+        session_id,
+        latitude,
+        longitude,
+        last_active_at,
+        current_page,
+        surveys(title)
+      `)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .order('last_active_at', { ascending: false })
+      .limit(500);
+
+    if (error) throw error;
+
+    const locations: GpsLocation[] = (sessions || []).map((s: any) => ({
+      id: s.id,
+      survey_id: s.survey_id,
+      survey_title: s.surveys?.title || 'Unknown Survey',
+      session_id: s.session_id,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      last_active_at: s.last_active_at,
+      current_page: s.current_page,
+    }));
+
+    return { success: true, data: locations };
+  } catch (error) {
+    console.error('Get GPS locations error:', error);
+    return { success: false, data: [], error: 'Failed to fetch GPS locations' };
   }
 }
 

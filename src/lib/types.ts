@@ -51,6 +51,8 @@ export interface SessionTracking {
   time_spent_seconds: number;
   last_active_at: string;
   created_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 // Enums
@@ -167,6 +169,8 @@ export interface ActiveSession {
   question_text?: string;
   time_spent_seconds: number;
   last_active_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface RealtimeStats {

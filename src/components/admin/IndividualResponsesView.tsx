@@ -273,6 +273,20 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
                             <span className="capitalize">{response.gender.replace('_', ' ')}</span>
                             <span>•</span>
                             <span>{response.age_range}</span>
+                            {response.latitude != null && response.longitude != null && (
+                              <>
+                                <span>•</span>
+                                <a
+                                  href={`https://www.google.com/maps?q=${response.latitude},${response.longitude}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline inline-flex items-center gap-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  📍 View on map
+                                </a>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -340,6 +354,16 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
                       <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
                         {response.browser} on {response.os}
                       </span>
+                      {response.latitude != null && response.longitude != null && (
+                        <a
+                          href={`https://www.google.com/maps?q=${response.latitude},${response.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-1 bg-amber-100 text-amber-800 rounded hover:bg-amber-200 transition-colors inline-flex items-center gap-1"
+                        >
+                          📍 {response.latitude.toFixed(5)}, {response.longitude.toFixed(5)} → Map
+                        </a>
+                      )}
                     </div>
 
                     {/* Answers list */}

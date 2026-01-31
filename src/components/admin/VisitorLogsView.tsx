@@ -12,6 +12,8 @@ interface VisitorLog {
   os: string | null;
   device_type: string | null;
   ip_address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
 }
 
@@ -41,6 +43,7 @@ export function VisitorLogsView({ logs }: VisitorLogsViewProps) {
             <th className="text-left py-3 px-2 font-semibold hidden sm:table-cell">Device</th>
             <th className="text-left py-3 px-2 font-semibold hidden md:table-cell">Browser</th>
             <th className="text-left py-3 px-2 font-semibold hidden lg:table-cell">IP</th>
+            <th className="text-left py-3 px-2 font-semibold hidden xl:table-cell">GPS</th>
             <th className="w-10" />
           </tr>
         </thead>
@@ -64,6 +67,20 @@ export function VisitorLogsView({ logs }: VisitorLogsViewProps) {
                 <td className="py-3 px-2 hidden lg:table-cell font-mono text-xs">
                   {log.ip_address ? `${log.ip_address.slice(0, 12)}…` : '—'}
                 </td>
+                <td className="py-3 px-2 hidden xl:table-cell">
+                  {log.latitude != null && log.longitude != null ? (
+                    <a
+                      href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-xs"
+                    >
+                      📍 Map
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </td>
                 <td className="py-3 px-2">
                   <button
                     onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
@@ -75,7 +92,7 @@ export function VisitorLogsView({ logs }: VisitorLogsViewProps) {
               </tr>
               {expandedId === log.id && (
                 <tr key={`${log.id}-details`} className="bg-muted/20">
-                  <td colSpan={6} className="py-4 px-4">
+                  <td colSpan={7} className="py-4 px-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                       <div>
                         <p className="font-semibold text-foreground mb-2">Full Details</p>
@@ -83,6 +100,21 @@ export function VisitorLogsView({ logs }: VisitorLogsViewProps) {
                           <div><dt className="text-muted-foreground inline">Path: </dt><dd className="inline font-mono break-all">{log.path}</dd></div>
                           <div><dt className="text-muted-foreground inline">Referrer: </dt><dd className="inline font-mono break-all">{log.referrer || '—'}</dd></div>
                           <div><dt className="text-muted-foreground inline">IP: </dt><dd className="inline font-mono">{log.ip_address || '—'}</dd></div>
+                          {log.latitude != null && log.longitude != null && (
+                            <div>
+                              <dt className="text-muted-foreground inline">GPS: </dt>
+                              <dd className="inline">
+                                <a
+                                  href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline font-mono"
+                                >
+                                  {log.latitude.toFixed(5)}, {log.longitude.toFixed(5)} → View on Map
+                                </a>
+                              </dd>
+                            </div>
+                          )}
                         </dl>
                       </div>
                       <div>

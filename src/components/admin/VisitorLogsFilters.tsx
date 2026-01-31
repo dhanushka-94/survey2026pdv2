@@ -37,6 +37,7 @@ export function VisitorLogsFilters({
   const device = searchParams.get('device') || '';
   const browser = searchParams.get('browser') || '';
   const os = searchParams.get('os') || '';
+  const hasGps = searchParams.get('gps') === '1';
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -56,7 +57,7 @@ export function VisitorLogsFilters({
   const browserOptions = [{ value: '', label: 'All browsers' }, ...browsers.map((b) => ({ value: b, label: b }))];
   const osOptions = [{ value: '', label: 'All OS' }, ...osList.map((o) => ({ value: o, label: o }))];
 
-  const hasFilters = pathContains || from || to || device || browser || os;
+  const hasFilters = pathContains || from || to || device || browser || os || hasGps;
 
   return (
     <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border mb-6">
@@ -125,6 +126,17 @@ export function VisitorLogsFilters({
             />
           </div>
         )}
+        <div>
+          <label className="block text-xs text-muted-foreground mb-1">GPS</label>
+          <Select
+            value={hasGps ? '1' : ''}
+            onChange={(e) => updateFilter('gps', e.target.value)}
+            options={[
+              { value: '', label: 'All visitors' },
+              { value: '1', label: '📍 With GPS only' },
+            ]}
+          />
+        </div>
       </div>
     </div>
   );

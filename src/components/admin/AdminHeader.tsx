@@ -43,6 +43,11 @@ export function AdminHeader({ adminPath, title, description, actions }: AdminHea
                 👥 Visitors
               </Button>
             </Link>
+            <Link href={`/${adminPath}/locations`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                📍 Locations
+              </Button>
+            </Link>
           </div>
           
           <button

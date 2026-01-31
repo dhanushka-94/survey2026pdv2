@@ -8,6 +8,8 @@ export async function logVisitor(data: {
   path: string;
   referrer?: string;
   userAgent?: string;
+  latitude?: number;
+  longitude?: number;
 }) {
   try {
     const headersList = await headers();
@@ -19,17 +21,20 @@ export async function logVisitor(data: {
 
     const { device_type, browser, os } = getDeviceInfoFromUA(userAgent);
 
-    const { error } = await supabaseAdmin.from('visitor_logs').insert([
-      {
-        path: data.path,
-        referrer: referrer || null,
-        user_agent: userAgent || null,
-        browser,
-        os,
-        device_type,
-        ip_address: ip,
-      },
-    ]);
+    const insertPayload: Record<string, unknown> = {
+      path: data.path,
+      referrer: referrer || null,
+      user_agent: userAgent || null,
+      browser,
+      os,
+      device_type,
+      ip_address: ip,
+    };
+    if (data.latitude != null && data.longitude != null) {
+      insertPayload.latitude = data.latitude;
+      insertPayload.longitude = data.longitude;
+    }
+    const { error } = await supabaseAdmin.from('visitor_logs').insert([insertPayload]);
 
     if (error) {
       console.error('Visitor log error:', error);
@@ -52,6 +57,7 @@ export async function getVisitorLogs(options?: {
   device_type?: string;
   browser?: string;
   os?: string;
+  hasGps?: boolean;
 }) {
   try {
     let query = supabaseAdmin
@@ -79,6 +85,9 @@ export async function getVisitorLogs(options?: {
     }
     if (options?.os) {
       query = query.eq('os', options.os);
+    }
+    if (options?.hasGps === true) {
+      query = query.not('latitude', 'is', null).not('longitude', 'is', null);
     }
 
     const limit = options?.limit || 100;

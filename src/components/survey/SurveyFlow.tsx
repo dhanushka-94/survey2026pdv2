@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getOrCreateSessionId, hasCompletedSurvey, markSurveyCompleted } from '@/lib/utils';
+import { useGeolocation } from '@/lib/hooks/useGeolocation';
 import { updateSessionTracking } from '@/actions/tracking';
 import { DemographicsStep } from './DemographicsStep';
 import { QuestionStep } from './QuestionStep';
@@ -18,11 +19,14 @@ interface SurveyFlowProps {
 
 export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
   const router = useRouter();
+  const { latitude, longitude } = useGeolocation();
   const [sessionId, setSessionId] = useState('');
   const [currentStep, setCurrentStep] = useState(0); // 0 = demographics, 1+ = questions
   const [demographics, setDemographics] = useState<DemographicsData | null>(null);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
   const [isCompleted, setIsCompleted] = useState(false);
+
+  const gpsCoords = latitude != null && longitude != null ? { latitude, longitude } : undefined;
 
   useEffect(() => {
     // Get or create session ID (will be new if coming from "Take Another Survey")
@@ -44,9 +48,10 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
         survey_id: survey.id,
         session_id: sessionId,
         current_page: 0,
+        ...gpsCoords,
       });
     }
-  }, [currentStep, sessionId, survey.id]);
+  }, [currentStep, sessionId, survey.id, latitude, longitude]);
 
   const handleDemographicsSubmit = (data: DemographicsData) => {
     setDemographics(data);
@@ -128,6 +133,8 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
         onAnswer={handleQuestionAnswer}
         questionNumber={currentStep}
         totalQuestions={questions.length}
+        latitude={latitude ?? undefined}
+        longitude={longitude ?? undefined}
       />
     </div>
   );

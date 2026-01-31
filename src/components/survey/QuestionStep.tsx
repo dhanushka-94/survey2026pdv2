@@ -21,6 +21,8 @@ interface QuestionStepProps {
   onAnswer: (questionId: string, answerValue: string) => void;
   questionNumber: number;
   totalQuestions: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export function QuestionStep({
@@ -31,6 +33,8 @@ export function QuestionStep({
   onAnswer,
   questionNumber,
   totalQuestions,
+  latitude,
+  longitude,
 }: QuestionStepProps) {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,14 +47,15 @@ export function QuestionStep({
   }, [question.id]);
 
   useEffect(() => {
-    // Track question view
+    // Track question view (include GPS if available)
     updateSessionTracking({
       survey_id: surveyId,
       session_id: sessionId,
       current_page: questionNumber,
       question_id: question.id,
+      ...(latitude != null && longitude != null ? { latitude, longitude } : {}),
     });
-  }, [question.id, sessionId, surveyId, questionNumber]);
+  }, [question.id, sessionId, surveyId, questionNumber, latitude, longitude]);
 
   const handleSubmit = async () => {
     if (!selectedValue) return;

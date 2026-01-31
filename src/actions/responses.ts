@@ -167,6 +167,8 @@ export interface IndividualResponse {
   os: string;
   submitted_at: string;
   total_time_seconds: number;
+  latitude: number | null;
+  longitude: number | null;
   answers: IndividualAnswer[];
 }
 
@@ -205,6 +207,22 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       return { success: true, data: [] };
     }
 
+    // Fetch session_tracking for GPS locations
+    const sessionIds = [...new Set(responses.map((r: any) => r.session_id))];
+    const { data: sessionTracking } = await supabaseAdmin
+      .from('session_tracking')
+      .select('session_id, latitude, longitude')
+      .eq('survey_id', surveyId)
+      .in('session_id', sessionIds);
+
+    const gpsBySession: Record<string, { latitude: number | null; longitude: number | null }> = {};
+    (sessionTracking || []).forEach((st: any) => {
+      gpsBySession[st.session_id] = {
+        latitude: st.latitude ?? null,
+        longitude: st.longitude ?? null,
+      };
+    });
+
     // Group responses by session_id
     const sessionMap: Record<string, IndividualResponse> = {};
 
@@ -226,6 +244,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
         const deviceLabel = deviceType === 'mobile' ? '📱' : deviceType === 'tablet' ? '📲' : '🖥️';
         const displayName = `${deviceLabel} ${browser} #${deviceCounter[deviceKey]}`;
         
+        const gps = gpsBySession[sid] || { latitude: null, longitude: null };
         sessionMap[sid] = {
           session_id: sid,
           display_name: displayName,
@@ -236,6 +255,8 @@ export async function getIndividualResponses(surveyId: string): Promise<{
           os: response.os || 'Unknown',
           submitted_at: response.created_at,
           total_time_seconds: 0,
+          latitude: gps.latitude,
+          longitude: gps.longitude,
           answers: [],
         };
       }

@@ -32,6 +32,7 @@ export default async function VisitorsPage({
     device_type: sp.device || undefined,
     browser: sp.browser || undefined,
     os: sp.os || undefined,
+    hasGps: sp.gps === '1',
   };
 
   const [statsResult, logsResult, filterOptionsResult] = await Promise.all([
@@ -107,7 +108,7 @@ export default async function VisitorsPage({
             <CardTitle>Recent Visits</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Showing {logs.length} of {totalCount} visits
-              {(filterOpts.pathContains || filterOpts.from || filterOpts.to || filterOpts.device_type || filterOpts.browser || filterOpts.os) ? ' (filtered)' : ''}
+              {(filterOpts.pathContains || filterOpts.from || filterOpts.to || filterOpts.device_type || filterOpts.browser || filterOpts.os || filterOpts.hasGps) ? ' (filtered)' : ''}
             </p>
           </CardHeader>
           <CardContent>

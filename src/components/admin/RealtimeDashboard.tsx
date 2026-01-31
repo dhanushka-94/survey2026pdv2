@@ -282,7 +282,17 @@ export function RealtimeDashboard({ surveys }: RealtimeDashboardProps) {
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {secondsSinceActive}s ago
-                          </span>
+                            </span>
+                            {session.latitude != null && session.longitude != null && (
+                              <a
+                                href={`https://www.google.com/maps?q=${session.latitude},${session.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                              >
+                                📍 Map
+                              </a>
+                            )}
                         </div>
 
                           {/* Progress Info */}

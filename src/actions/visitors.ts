@@ -46,8 +46,12 @@ export async function getVisitorLogs(options?: {
   limit?: number;
   offset?: number;
   path?: string;
+  pathContains?: string;
   from?: string;
   to?: string;
+  device_type?: string;
+  browser?: string;
+  os?: string;
 }) {
   try {
     let query = supabaseAdmin
@@ -58,11 +62,23 @@ export async function getVisitorLogs(options?: {
     if (options?.path) {
       query = query.eq('path', options.path);
     }
+    if (options?.pathContains) {
+      query = query.ilike('path', `%${options.pathContains}%`);
+    }
     if (options?.from) {
       query = query.gte('created_at', options.from);
     }
     if (options?.to) {
       query = query.lte('created_at', options.to);
+    }
+    if (options?.device_type) {
+      query = query.eq('device_type', options.device_type);
+    }
+    if (options?.browser) {
+      query = query.eq('browser', options.browser);
+    }
+    if (options?.os) {
+      query = query.eq('os', options.os);
     }
 
     const limit = options?.limit || 100;
@@ -76,6 +92,49 @@ export async function getVisitorLogs(options?: {
   } catch (error) {
     console.error('Get visitor logs error:', error);
     return { success: false, data: [], count: 0 };
+  }
+}
+
+export async function getVisitorFilterOptions() {
+  try {
+    const { data: paths } = await supabaseAdmin
+      .from('visitor_logs')
+      .select('path')
+      .limit(500);
+
+    const uniquePaths = [...new Set((paths || []).map((p) => p.path).filter(Boolean))].sort();
+
+    const { data: devices } = await supabaseAdmin
+      .from('visitor_logs')
+      .select('device_type')
+      .not('device_type', 'is', null);
+
+    const uniqueDevices = [...new Set((devices || []).map((d) => d.device_type).filter(Boolean))].sort();
+
+    const { data: browsers } = await supabaseAdmin
+      .from('visitor_logs')
+      .select('browser')
+      .not('browser', 'is', null);
+
+    const uniqueBrowsers = [...new Set((browsers || []).map((b) => b.browser).filter(Boolean))].sort();
+
+    const { data: osList } = await supabaseAdmin
+      .from('visitor_logs')
+      .select('os')
+      .not('os', 'is', null);
+
+    const uniqueOs = [...new Set((osList || []).map((o) => o.os).filter(Boolean))].sort();
+
+    return {
+      success: true,
+      paths: uniquePaths,
+      devices: uniqueDevices,
+      browsers: uniqueBrowsers,
+      os: uniqueOs,
+    };
+  } catch (error) {
+    console.error('Get filter options error:', error);
+    return { success: false, paths: [], devices: [], browsers: [], os: [] };
   }
 }
 

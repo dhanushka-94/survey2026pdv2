@@ -19,10 +19,5 @@ CREATE INDEX IF NOT EXISTS idx_visitor_logs_created_at ON visitor_logs(created_a
 CREATE INDEX IF NOT EXISTS idx_visitor_logs_path ON visitor_logs(path);
 CREATE INDEX IF NOT EXISTS idx_visitor_logs_ip ON visitor_logs(ip_address);
 
--- RLS: With no policies, anon gets no access. Service role bypasses RLS for admin.
+-- RLS: Service role (admin) bypasses RLS. Anon gets no access with no policies.
 ALTER TABLE visitor_logs ENABLE ROW LEVEL SECURITY;
-
--- Allow inserts from authenticated context (our server uses service_role)
-CREATE POLICY "Allow insert visitor logs"
-    ON visitor_logs FOR INSERT
-    WITH CHECK (true);

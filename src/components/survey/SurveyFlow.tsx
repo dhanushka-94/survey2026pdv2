@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  clearSurveyCompletion,
   getOrCreateSessionId,
   hasCompletedSurvey,
   markSurveyCompleted,
@@ -26,6 +27,7 @@ interface SurveyFlowProps {
 
 export function SurveyFlow({ survey, categories, questions, finalReward }: SurveyFlowProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { latitude, longitude } = useGeolocation();
   const [sessionId, setSessionId] = useState('');
   const [currentStep, setCurrentStep] = useState(0); // 0 = demographics, 1+ = questions
@@ -44,17 +46,24 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
   const voluntaryMatch = descriptionWithoutAffiliation.match(
     /Voluntary Participation:\s*([\s\S]*)/i
   );
+  const isNewSession = searchParams.get('new') === 'true';
 
   useEffect(() => {
-    // Get or create session ID (will be new if coming from "Take Another Survey")
-    const id = getOrCreateSessionId();
+    if (isNewSession) {
+      clearSurveyCompletion(survey.id);
+    }
+
+    // Get or create session ID (force new when retaking this survey)
+    const id = getOrCreateSessionId(isNewSession);
     setSessionId(id);
 
     // Check if this session has already completed this specific survey
     if (hasCompletedSurvey(survey.id)) {
       setIsCompleted(true);
+    } else {
+      setIsCompleted(false);
     }
-  }, [survey.id]);
+  }, [survey.id, isNewSession]);
 
   useEffect(() => {
     if (!sessionId) return;

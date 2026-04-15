@@ -100,7 +100,7 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
                   </div>
 
                   {/* Action Button */}
-                  <Link href={`/survey/${survey.id}`}>
+                  <Link href={isCompleted ? `/survey/${survey.id}?new=true` : `/survey/${survey.id}`}>
                     <Button 
                       className="w-full" 
                       variant={!hasStarted || isCompleted ? "secondary" : "primary"}

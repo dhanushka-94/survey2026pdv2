@@ -94,12 +94,15 @@ export function QuestionStep({
   };
 
   const toEmbedUrl = (url: string): string => {
+    const iframeSrcMatch = url.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
+    const input = iframeSrcMatch?.[1] || url;
+
     try {
-      const u = new URL(url);
+      const u = new URL(input);
       const host = u.hostname.toLowerCase();
 
       if (host.includes('youtube.com')) {
-        if (u.pathname.startsWith('/embed/')) return url;
+        if (u.pathname.startsWith('/embed/')) return input;
         const videoId = u.searchParams.get('v');
         if (videoId) return `https://www.youtube.com/embed/${videoId}`;
       }
@@ -114,7 +117,7 @@ export function QuestionStep({
     } catch {
       // Keep original URL fallback
     }
-    return url;
+    return input;
   };
 
   useEffect(() => {
@@ -233,15 +236,29 @@ export function QuestionStep({
 
           {/* Question Video Link */}
           {question.video_url && (
-            <div className="mb-4">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowVideo(true)}
-                className="w-full sm:w-auto"
-              >
-                🎬 Show Video
-              </Button>
+            <div className="mb-5 rounded-xl border-2 border-rose-200 bg-gradient-to-r from-rose-50 via-pink-50 to-amber-50 p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-xl animate-pulse">
+                    🎬
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-rose-800">
+                      Video sample available
+                    </p>
+                    <p className="text-xs text-rose-700/80 mt-0.5">
+                      Watch before answering this question.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => setShowVideo(true)}
+                  className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+                >
+                  ▶ Play Video
+                </Button>
+              </div>
             </div>
           )}
 

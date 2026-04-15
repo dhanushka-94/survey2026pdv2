@@ -60,12 +60,15 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
   };
 
   const toEmbedUrl = (url: string): string => {
+    const iframeSrcMatch = url.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
+    const input = iframeSrcMatch?.[1] || url;
+
     try {
-      const u = new URL(url);
+      const u = new URL(input);
       const host = u.hostname.toLowerCase();
 
       if (host.includes('youtube.com')) {
-        if (u.pathname.startsWith('/embed/')) return url;
+        if (u.pathname.startsWith('/embed/')) return input;
         const videoId = u.searchParams.get('v');
         if (videoId) return `https://www.youtube.com/embed/${videoId}`;
       }
@@ -80,7 +83,7 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
     } catch {
       // Keep original URL fallback
     }
-    return url;
+    return input;
   };
 
   const getAnswerDisplay = (answer: string, type: string) => {

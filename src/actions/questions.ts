@@ -6,6 +6,24 @@ import type { QuestionFormData } from '@/lib/types';
 
 const MEDIA_BUCKET = 'survey';
 
+function normalizeVideoUrl(input?: string | null): string | null {
+  if (!input) return null;
+  const raw = input.trim();
+  if (!raw) return null;
+
+  // Support iframe embed code pasted from providers.
+  const iframeSrcMatch = raw.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);
+  const candidate = iframeSrcMatch?.[1] || raw;
+
+  // Keep only valid absolute URLs.
+  try {
+    const url = new URL(candidate);
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export async function getQuestions(surveyId: string) {
   try {
     const { data, error } = await supabaseAdmin
@@ -66,7 +84,7 @@ export async function createQuestion(formData: QuestionFormData) {
           question_text: formData.question_text,
           description: formData.description || null,
           media_url: formData.media_url || null,
-          video_url: formData.video_url || null,
+          video_url: normalizeVideoUrl(formData.video_url),
           media_urls: cleanMediaUrls,
           checkbox_options: cleanCheckboxOptions,
           question_type: formData.question_type,
@@ -93,7 +111,7 @@ export async function updateQuestion(id: string, formData: Partial<QuestionFormD
     if (formData.question_text !== undefined) updateData.question_text = formData.question_text;
     if (formData.description !== undefined) updateData.description = formData.description || null;
     if (formData.media_url !== undefined) updateData.media_url = formData.media_url || null;
-    if (formData.video_url !== undefined) updateData.video_url = formData.video_url || null;
+    if (formData.video_url !== undefined) updateData.video_url = normalizeVideoUrl(formData.video_url);
     if (formData.media_urls !== undefined) {
       // Filter out empty URLs
       const cleanMediaUrls = formData.media_urls && formData.media_urls.length > 0

@@ -1,15 +1,35 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+const SRI_LANKA_TIMEZONE = 'Asia/Colombo';
+const SRI_LANKA_OFFSET_MINUTES = 5 * 60 + 30;
+
 // Tailwind class name merger
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+function parseAsSriLankaDateTime(value: string): Date | null {
+  const v = value.trim();
+  const dtMatch = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/);
+  if (!dtMatch) return null;
+
+  const year = Number(dtMatch[1]);
+  const monthIndex = Number(dtMatch[2]) - 1;
+  const day = Number(dtMatch[3]);
+  const hours = Number(dtMatch[4] ?? '0');
+  const minutes = Number(dtMatch[5] ?? '0');
+
+  const utcMs = Date.UTC(year, monthIndex, day, hours, minutes) - SRI_LANKA_OFFSET_MINUTES * 60 * 1000;
+  const parsed = new Date(utcMs);
+  return isNaN(parsed.getTime()) ? null : parsed;
 }
 
 // Format date for display
 export function formatDate(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   return d.toLocaleDateString('en-US', {
+    timeZone: SRI_LANKA_TIMEZONE,
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -20,6 +40,7 @@ export function formatDate(date: string | Date): string {
 export function formatDateTime(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   return d.toLocaleString('en-US', {
+    timeZone: SRI_LANKA_TIMEZONE,
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -77,20 +98,17 @@ export function surveyExpiresAt(s: {
 /** Date-only YYYY-MM-DD → start of that calendar day in UTC; else parse as ISO/local datetime. */
 export function parseSurveyStartDate(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
-  const v = value.trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
-    // Treat date-only input as LOCAL midnight to match user expectation in admin UI.
-    // Using UTC midnight can shift availability by timezone.
-    const localMidnight = new Date(`${v}T00:00:00`);
-    return isNaN(localMidnight.getTime()) ? null : localMidnight.toISOString();
-  }
-  const d = new Date(v);
+  const slDate = parseAsSriLankaDateTime(value);
+  if (slDate) return slDate.toISOString();
+  const d = new Date(value.trim());
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 /** datetime-local or ISO string → UTC ISO for DB */
 export function parseSurveyExpiresAt(value: string | null | undefined): string | null {
   if (!value?.trim()) return null;
+  const slDate = parseAsSriLankaDateTime(value);
+  if (slDate) return slDate.toISOString();
   const d = new Date(value.trim());
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
@@ -100,8 +118,20 @@ export function isoToDatetimeLocalInput(iso: string | null | undefined): string 
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const dtf = new Intl.DateTimeFormat('en-CA', {
+    timeZone: SRI_LANKA_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts = dtf.formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? '';
+
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
 }
 
 // Format time spent in seconds to readable format

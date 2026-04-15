@@ -78,7 +78,9 @@ export async function createSurvey(formData: SurveyFormData) {
 
     if (error) throw error;
 
-    revalidatePath('/[admin]/surveys');
+    // Invalidate all route variants (dynamic admin path + public pages).
+    revalidatePath('/', 'layout');
+    revalidatePath(`/survey/${data.id}`);
     return { success: true, data };
   } catch (error) {
     console.error('Create survey error:', error);
@@ -117,8 +119,9 @@ export async function updateSurvey(id: string, formData: Partial<SurveyFormData>
 
     if (error) throw error;
 
-    revalidatePath('/[admin]/surveys');
-    revalidatePath(`/[admin]/surveys/${id}`);
+    // Invalidate all route variants (dynamic admin path + public pages).
+    revalidatePath('/', 'layout');
+    revalidatePath(`/survey/${id}`);
     return { success: true, data };
   } catch (error) {
     console.error('Update survey error:', error);
@@ -135,7 +138,7 @@ export async function deleteSurvey(id: string) {
 
     if (error) throw error;
 
-    revalidatePath('/[admin]/surveys');
+    revalidatePath('/', 'layout');
     return { success: true };
   } catch (error) {
     console.error('Delete survey error:', error);
@@ -154,7 +157,8 @@ export async function toggleSurveyStatus(id: string, isActive: boolean) {
 
     if (error) throw error;
 
-    revalidatePath('/[admin]/surveys');
+    revalidatePath('/', 'layout');
+    revalidatePath(`/survey/${id}`);
     return { success: true, data };
   } catch (error) {
     console.error('Toggle survey status error:', error);

@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { hasCompletedSurvey, renewSessionId } from '@/lib/utils';
+import { hasCompletedSurvey, surveyExpiresAt } from '@/lib/utils';
+import { SurveyExpiryCountdown } from '@/components/survey/SurveyExpiryCountdown';
 import type { Survey } from '@/lib/types';
 
 interface ClientSurveyRedirectProps {
@@ -13,6 +14,8 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isNewSession = searchParams.get('new') === 'true';
+  const single = surveys.length === 1 ? surveys[0] : null;
+  const singleExpires = single ? surveyExpiresAt(single) : null;
 
   useEffect(() => {
     // If user wants a new session (clicked "Take Another Survey")
@@ -53,6 +56,11 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
         <p className="text-sm text-muted-foreground">
           Found {surveys.length} active survey{surveys.length !== 1 ? 's' : ''}
         </p>
+        {singleExpires && (
+          <div className="mt-5">
+            <SurveyExpiryCountdown expiresAtIso={singleExpires} variant="hero" />
+          </div>
+        )}
         {surveys.length === 0 && (
           <p className="text-xs text-red-500 mt-2">
             No surveys found. Please create one in the admin dashboard.

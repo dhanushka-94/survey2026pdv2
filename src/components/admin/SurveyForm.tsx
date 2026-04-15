@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import type { Survey } from '@/lib/types';
+import { isoToDatetimeLocalInput } from '@/lib/utils';
 
 interface SurveyFormProps {
   adminPath: string;
@@ -23,7 +24,9 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
     description: survey?.description || '',
     is_active: survey?.is_active || false,
     start_date: survey?.start_date ? survey.start_date.split('T')[0] : '',
-    end_date: survey?.end_date ? survey.end_date.split('T')[0] : '',
+    expires_at: isoToDatetimeLocalInput(
+      survey?.expires_at || survey?.end_date || null
+    ),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,11 +130,11 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-sm font-medium text-foreground">
-              End Date (Optional)
+              Expiration (date and time, optional)
             </label>
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, end_date: '' })}
+              onClick={() => setFormData({ ...formData, expires_at: '' })}
               className="text-xs text-primary hover:underline"
               disabled={isLoading}
             >
@@ -139,42 +142,48 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
             </button>
           </div>
           <Input
-            type="date"
-            value={formData.end_date}
+            type="datetime-local"
+            value={formData.expires_at}
             onChange={(e) =>
-              setFormData({ ...formData, end_date: e.target.value })
+              setFormData({ ...formData, expires_at: e.target.value })
             }
             disabled={isLoading}
-            placeholder="Select end date"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Leave empty for no end date. Survey hides after this date.
+            Leave empty for no expiration. Uses your local timezone; stored in UTC on the server.
           </p>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap">
             <button
               type="button"
               onClick={() => {
                 const lastDay = new Date();
                 lastDay.setMonth(lastDay.getMonth() + 1);
                 lastDay.setDate(0);
-                setFormData({ ...formData, end_date: lastDay.toISOString().split('T')[0] });
+                lastDay.setHours(23, 59, 0, 0);
+                setFormData({
+                  ...formData,
+                  expires_at: isoToDatetimeLocalInput(lastDay.toISOString()),
+                });
               }}
               className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
               disabled={isLoading}
             >
-              End of Month
+              End of month 23:59
             </button>
             <button
               type="button"
               onClick={() => {
                 const nextMonth = new Date();
                 nextMonth.setMonth(nextMonth.getMonth() + 1);
-                setFormData({ ...formData, end_date: nextMonth.toISOString().split('T')[0] });
+                setFormData({
+                  ...formData,
+                  expires_at: isoToDatetimeLocalInput(nextMonth.toISOString()),
+                });
               }}
               className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
               disabled={isLoading}
             >
-              +1 Month
+              +1 Month (same time)
             </button>
           </div>
         </div>

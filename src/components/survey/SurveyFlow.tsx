@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getOrCreateSessionId, hasCompletedSurvey, markSurveyCompleted } from '@/lib/utils';
+import {
+  getOrCreateSessionId,
+  hasCompletedSurvey,
+  markSurveyCompleted,
+  surveyExpiresAt,
+} from '@/lib/utils';
 import { useGeolocation } from '@/lib/hooks/useGeolocation';
 import { updateSessionTracking } from '@/actions/tracking';
 import { DemographicsStep } from './DemographicsStep';
 import { QuestionStep } from './QuestionStep';
 import { CompletionScreen } from './CompletionScreen';
 import { ProgressBar } from './ProgressBar';
+import { SurveyExpiryCountdown } from './SurveyExpiryCountdown';
 import type { Survey, Category, Question, DemographicsData, Reward } from '@/lib/types';
 
 interface SurveyFlowProps {
@@ -28,6 +34,8 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
   const [isCompleted, setIsCompleted] = useState(false);
 
   const gpsCoords = latitude != null && longitude != null ? { latitude, longitude } : undefined;
+
+  const expiresAt = surveyExpiresAt(survey);
 
   const rawDescription = survey.description || '';
   const descriptionWithoutAffiliation = rawDescription
@@ -105,6 +113,9 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
             <p className="text-sm font-semibold text-red-600 mt-1">
               ⏳ Limited time available
             </p>
+            {expiresAt && (
+              <SurveyExpiryCountdown expiresAtIso={expiresAt} variant="hero" />
+            )}
             {finalReward?.title && (
               <p className="text-sm text-amber-700 mt-2">
                 Current reward: <span className="font-semibold">{finalReward.title}</span>
@@ -159,6 +170,10 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
         total={questions.length}
         categoryName={currentCategory?.name}
       />
+
+      {expiresAt && (
+        <SurveyExpiryCountdown expiresAtIso={expiresAt} variant="banner" />
+      )}
 
       <QuestionStep
         question={currentQuestion}

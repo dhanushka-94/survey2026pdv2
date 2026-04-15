@@ -2,7 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
-import type { Survey, SurveyFormData } from '@/lib/types';
+import type { SurveyFormData } from '@/lib/types';
+import {
+  parseSurveyExpiresAt,
+  parseSurveyStartDate,
+} from '@/lib/utils';
 
 export async function getSurveys() {
   try {
@@ -50,6 +54,11 @@ export async function getSurvey(id: string) {
 
 export async function createSurvey(formData: SurveyFormData) {
   try {
+    const expiresAt = parseSurveyExpiresAt(
+      formData.expires_at || formData.end_date
+    );
+    const startAt = parseSurveyStartDate(formData.start_date);
+
     const { data, error } = await supabaseAdmin
       .from('surveys')
       .insert([
@@ -57,8 +66,9 @@ export async function createSurvey(formData: SurveyFormData) {
           title: formData.title,
           description: formData.description || null,
           is_active: formData.is_active,
-          start_date: formData.start_date || null,
-          end_date: formData.end_date || null,
+          start_date: startAt,
+          expires_at: expiresAt,
+          end_date: expiresAt,
         },
       ])
       .select()
@@ -76,13 +86,21 @@ export async function createSurvey(formData: SurveyFormData) {
 
 export async function updateSurvey(id: string, formData: Partial<SurveyFormData>) {
   try {
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     
     if (formData.title !== undefined) updateData.title = formData.title;
     if (formData.description !== undefined) updateData.description = formData.description || null;
     if (formData.is_active !== undefined) updateData.is_active = formData.is_active;
-    if (formData.start_date !== undefined) updateData.start_date = formData.start_date || null;
-    if (formData.end_date !== undefined) updateData.end_date = formData.end_date || null;
+    if (formData.start_date !== undefined) {
+      updateData.start_date = parseSurveyStartDate(formData.start_date);
+    }
+    if (formData.expires_at !== undefined || formData.end_date !== undefined) {
+      const expiresAt = parseSurveyExpiresAt(
+        formData.expires_at ?? formData.end_date
+      );
+      updateData.expires_at = expiresAt;
+      updateData.end_date = expiresAt;
+    }
 
     const { data, error } = await supabaseAdmin
       .from('surveys')

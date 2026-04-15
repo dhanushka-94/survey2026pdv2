@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { formatDate, formatDateTime, isSurveyActive } from '@/lib/utils';
+import {
+  formatDate,
+  formatDateTime,
+  isSurveyActive,
+  surveyExpiresAt,
+} from '@/lib/utils';
+import { SurveyExpiryCountdown } from '@/components/survey/SurveyExpiryCountdown';
 import { toggleSurveyStatus, deleteSurvey } from '@/actions/surveys';
 import { Button } from '@/components/ui/Button';
 
@@ -14,6 +20,7 @@ interface Survey {
   is_active: boolean;
   start_date: string | null;
   end_date: string | null;
+  expires_at?: string | null;
   created_at: string;
 }
 
@@ -82,10 +89,11 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
   return (
     <div className="space-y-4">
       {surveys.map((survey) => {
+        const expires = surveyExpiresAt(survey);
         const isCurrentlyActive = isSurveyActive(
           survey.is_active,
           survey.start_date,
-          survey.end_date
+          expires
         );
 
         return (
@@ -145,8 +153,8 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
               {survey.start_date && (
                 <p>Start: {formatDate(survey.start_date)}</p>
               )}
-              {survey.end_date && (
-                <p>End: {formatDate(survey.end_date)}</p>
+              {expires && (
+                <SurveyExpiryCountdown expiresAtIso={expires} variant="compact" />
               )}
             </div>
 

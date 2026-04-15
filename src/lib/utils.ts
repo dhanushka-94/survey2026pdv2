@@ -46,7 +46,49 @@ export function isSurveyActive(
     return false;
   }
 
-  return true;
+   return true;
+}
+
+/** Effective instant when the survey closes (new expires_at or legacy end_date). */
+export function surveyExpiresAt(s: {
+  expires_at?: string | null;
+  end_date?: string | null;
+}): string | null {
+  const r = s as Record<string, unknown>;
+  const expires =
+    (typeof r.expires_at === 'string' ? r.expires_at : null) ??
+    (typeof r.expiresAt === 'string' ? r.expiresAt : null);
+  const legacy =
+    (typeof r.end_date === 'string' ? r.end_date : null) ??
+    (typeof r.endDate === 'string' ? r.endDate : null);
+  return expires ?? legacy ?? null;
+}
+
+/** Date-only YYYY-MM-DD → start of that calendar day in UTC; else parse as ISO/local datetime. */
+export function parseSurveyStartDate(value: string | null | undefined): string | null {
+  if (!value?.trim()) return null;
+  const v = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+    return `${v}T00:00:00.000Z`;
+  }
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** datetime-local or ISO string → UTC ISO for DB */
+export function parseSurveyExpiresAt(value: string | null | undefined): string | null {
+  if (!value?.trim()) return null;
+  const d = new Date(value.trim());
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/** For `<input type="datetime-local" />` value from a stored ISO timestamp */
+export function isoToDatetimeLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 // Format time spent in seconds to readable format

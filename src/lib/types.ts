@@ -5,7 +5,10 @@ export interface Survey {
   description: string | null;
   is_active: boolean;
   start_date: string | null;
+  /** @deprecated Prefer expires_at; kept for legacy rows and mirrored writes */
   end_date: string | null;
+  /** Instant (UTC) when the survey stops accepting responses; overrides end_date when set */
+  expires_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -98,7 +101,10 @@ export interface SurveyFormData {
   description: string;
   is_active: boolean;
   start_date: string;
-  end_date: string;
+  /** Empty = no expiration. Browser datetime-local or any parseable datetime string */
+  expires_at: string;
+  /** @deprecated Use expires_at */
+  end_date?: string;
 }
 
 export interface CategoryFormData {

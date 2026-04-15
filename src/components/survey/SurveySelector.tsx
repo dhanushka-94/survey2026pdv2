@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { hasCompletedSurvey } from '@/lib/utils';
+import { hasCompletedSurvey, surveyExpiresAt } from '@/lib/utils';
+import { SurveyExpiryCountdown } from '@/components/survey/SurveyExpiryCountdown';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import type { Survey } from '@/lib/types';
@@ -109,20 +110,20 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
                   </Link>
 
                   {/* Date Info */}
-                  {(survey.start_date || survey.end_date) && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        {survey.start_date && (
-                          <p>
-                            📅 Started: {new Date(survey.start_date).toLocaleDateString()}
-                          </p>
-                        )}
-                        {survey.end_date && (
-                          <p>
-                            ⏰ Ends: {new Date(survey.end_date).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
+                  {(survey.start_date || surveyExpiresAt(survey)) && (
+                    <div className="mt-3 space-y-2 pt-3 border-t border-border">
+                      {survey.start_date && (
+                        <p className="text-xs text-muted-foreground">
+                          Started:{' '}
+                          {new Date(survey.start_date).toLocaleDateString()}
+                        </p>
+                      )}
+                      {surveyExpiresAt(survey) && (
+                        <SurveyExpiryCountdown
+                          expiresAtIso={surveyExpiresAt(survey)!}
+                          variant="compact"
+                        />
+                      )}
                     </div>
                   )}
                 </CardContent>

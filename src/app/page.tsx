@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { isSurveyActive } from '@/lib/utils';
+import { isSurveyActive, surveyExpiresAt } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ClientSurveyRedirect } from '@/components/survey/ClientSurveyRedirect';
 import { ClearHistoryButton } from '@/components/survey/ClearHistoryButton';
@@ -19,8 +19,12 @@ async function getAllActiveSurveys() {
   }
 
   // Filter surveys that are truly active (within date range)
-  const activeSurveys = surveys.filter(survey => 
-    isSurveyActive(survey.is_active, survey.start_date, survey.end_date)
+  const activeSurveys = surveys.filter((survey) =>
+    isSurveyActive(
+      survey.is_active,
+      survey.start_date,
+      surveyExpiresAt(survey)
+    )
   );
 
   return activeSurveys;

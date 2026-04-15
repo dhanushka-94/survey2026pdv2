@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { isSurveyActive } from '@/lib/utils';
+import { isSurveyActive, surveyExpiresAt } from '@/lib/utils';
 import { SurveyFlow } from '@/components/survey/SurveyFlow';
 import { getActiveRewardForSurvey } from '@/actions/rewards';
 
@@ -16,7 +16,13 @@ async function getSurveyData(id: string) {
   }
 
   // Check if survey is active
-  if (!isSurveyActive(survey.is_active, survey.start_date, survey.end_date)) {
+  if (
+    !isSurveyActive(
+      survey.is_active,
+      survey.start_date,
+      surveyExpiresAt(survey)
+    )
+  ) {
     return null;
   }
 

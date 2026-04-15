@@ -68,7 +68,8 @@ export default async function TestDBPage() {
                           Start: {survey.start_date || 'Not set'}
                         </p>
                         <p className="text-xs text-gray-500">
-                          End: {survey.end_date || 'Not set'}
+                          Expires:{' '}
+                          {survey.expires_at || survey.end_date || 'Not set'}
                         </p>
                       </div>
                     </div>

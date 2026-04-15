@@ -4,6 +4,56 @@ import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { AggregatedResults, QuestionResult } from '@/lib/types';
 
+export async function canDeviceSubmitSurvey(
+  surveyId: string,
+  deviceId: string,
+  sessionId?: string
+) {
+  try {
+    if (!deviceId) {
+      return { success: true, allowed: true };
+    }
+
+    const { data: survey, error: surveyError } = await supabaseAdmin
+      .from('surveys')
+      .select('block_multiple_submissions_per_device')
+      .eq('id', surveyId)
+      .maybeSingle();
+
+    if (surveyError) throw surveyError;
+    if (!survey?.block_multiple_submissions_per_device) {
+      return { success: true, allowed: true };
+    }
+
+    let query = supabaseAdmin
+      .from('responses')
+      .select('id', { count: 'exact', head: true })
+      .eq('survey_id', surveyId)
+      .eq('device_id', deviceId);
+
+    if (sessionId) {
+      query = query.neq('session_id', sessionId);
+    }
+
+    const { count, error } = await query;
+    if (error) throw error;
+
+    const hasPreviousSubmission = (count || 0) > 0;
+    return {
+      success: true,
+      allowed: !hasPreviousSubmission,
+      reason: hasPreviousSubmission ? 'already_submitted_on_device' : undefined,
+    };
+  } catch (error) {
+    console.error('canDeviceSubmitSurvey error:', error);
+    return {
+      success: false,
+      allowed: false,
+      error: 'Failed to validate device submission',
+    };
+  }
+}
+
 export async function getResponses(surveyId: string) {
   try {
     const { data, error } = await supabaseAdmin

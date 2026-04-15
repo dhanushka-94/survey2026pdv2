@@ -23,6 +23,8 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
     title: survey?.title || '',
     description: survey?.description || '',
     is_active: survey?.is_active || false,
+    block_multiple_submissions_per_device:
+      survey?.block_multiple_submissions_per_device || false,
     start_date: survey?.start_date ? survey.start_date.split('T')[0] : '',
     expires_at: isoToDatetimeLocalInput(
       survey?.expires_at || survey?.end_date || null
@@ -203,6 +205,33 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
         <label htmlFor="is_active" className="text-sm font-medium text-foreground">
           Active Survey
         </label>
+      </div>
+
+      <div className="flex items-start gap-2">
+        <input
+          type="checkbox"
+          id="block_multiple_submissions_per_device"
+          checked={formData.block_multiple_submissions_per_device}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              block_multiple_submissions_per_device: e.target.checked,
+            })
+          }
+          disabled={isLoading}
+          className="mt-0.5 w-5 h-5 text-primary border-border rounded focus:ring-primary"
+        />
+        <div>
+          <label
+            htmlFor="block_multiple_submissions_per_device"
+            className="text-sm font-medium text-foreground"
+          >
+            Block repeat submissions from same device
+          </label>
+          <p className="text-xs text-muted-foreground mt-1">
+            When enabled, this survey can be submitted only once per device.
+          </p>
+        </div>
       </div>
 
       {error && (

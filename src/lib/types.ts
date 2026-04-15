@@ -4,6 +4,7 @@ export interface Survey {
   title: string;
   description: string | null;
   is_active: boolean;
+  block_multiple_submissions_per_device?: boolean;
   start_date: string | null;
   /** @deprecated Prefer expires_at; kept for legacy rows and mirrored writes */
   end_date: string | null;
@@ -100,6 +101,7 @@ export interface SurveyFormData {
   title: string;
   description: string;
   is_active: boolean;
+  block_multiple_submissions_per_device?: boolean;
   start_date: string;
   /** Empty = no expiration. Browser datetime-local or any parseable datetime string */
   expires_at: string;

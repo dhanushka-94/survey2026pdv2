@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { updateSessionTracking } from '@/actions/tracking';
-import { getDeviceInfo } from '@/lib/utils';
+import { canDeviceSubmitSurvey } from '@/actions/responses';
+import { getDeviceInfo, getOrCreateDeviceId } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LikeDislikeInput } from './LikeDislikeInput';
@@ -69,6 +70,20 @@ export function QuestionStep({
     
     // Get device info
     const deviceInfo = getDeviceInfo();
+    const deviceId = getOrCreateDeviceId();
+
+    const permission = await canDeviceSubmitSurvey(surveyId, deviceId, sessionId);
+    if (!permission.success) {
+      alert('Could not verify device submission rules. Please try again.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!permission.allowed) {
+      alert('This survey can only be submitted once per device.');
+      setIsSubmitting(false);
+      return;
+    }
     
     // Save response to database
     const { error } = await supabase.from('responses').insert([
@@ -79,6 +94,7 @@ export function QuestionStep({
         age_range: demographics.age_range,
         gender: demographics.gender,
         answer_value: selectedValue,
+        device_id: deviceId,
         device_type: deviceInfo.device_type,
         browser: deviceInfo.browser,
         os: deviceInfo.os,

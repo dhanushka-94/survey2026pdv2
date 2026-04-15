@@ -141,6 +141,21 @@ export function renewSessionId(): string {
   return getOrCreateSessionId(true);
 }
 
+// Get or create a browser-local device ID used for repeat-submission blocking
+export function getOrCreateDeviceId(): string {
+  if (typeof window === 'undefined') return '';
+
+  const storageKey = 'survey_device_id';
+  let deviceId = localStorage.getItem(storageKey);
+
+  if (!deviceId) {
+    deviceId = `device_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+    localStorage.setItem(storageKey, deviceId);
+  }
+
+  return deviceId;
+}
+
 // Check if user has completed a survey
 export function hasCompletedSurvey(surveyId: string): boolean {
   if (typeof window === 'undefined') return false;

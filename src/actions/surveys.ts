@@ -66,6 +66,8 @@ export async function createSurvey(formData: SurveyFormData) {
           title: formData.title,
           description: formData.description || null,
           is_active: formData.is_active,
+          block_multiple_submissions_per_device:
+            formData.block_multiple_submissions_per_device ?? false,
           start_date: startAt,
           expires_at: expiresAt,
           end_date: expiresAt,
@@ -91,6 +93,10 @@ export async function updateSurvey(id: string, formData: Partial<SurveyFormData>
     if (formData.title !== undefined) updateData.title = formData.title;
     if (formData.description !== undefined) updateData.description = formData.description || null;
     if (formData.is_active !== undefined) updateData.is_active = formData.is_active;
+    if (formData.block_multiple_submissions_per_device !== undefined) {
+      updateData.block_multiple_submissions_per_device =
+        formData.block_multiple_submissions_per_device;
+    }
     if (formData.start_date !== undefined) {
       updateData.start_date = parseSurveyStartDate(formData.start_date);
     }

@@ -25,7 +25,7 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
     is_active: survey?.is_active || false,
     block_multiple_submissions_per_device:
       survey?.block_multiple_submissions_per_device || false,
-    start_date: survey?.start_date ? survey.start_date.split('T')[0] : '',
+    start_date: isoToDatetimeLocalInput(survey?.start_date || null),
     expires_at: isoToDatetimeLocalInput(
       survey?.expires_at || survey?.end_date || null
     ),
@@ -82,7 +82,7 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-sm font-medium text-foreground">
-              Start Date (Optional)
+              Start (date and time, optional)
             </label>
             <button
               type="button"
@@ -94,37 +94,60 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
             </button>
           </div>
           <Input
-            type="date"
+            type="datetime-local"
             value={formData.start_date}
             onChange={(e) =>
               setFormData({ ...formData, start_date: e.target.value })
             }
             disabled={isLoading}
-            placeholder="Select start date"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Leave empty or select past/future date. Survey shows when active + date is reached.
+            Leave empty to start immediately when active. Uses your local timezone; stored in UTC on the server.
           </p>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap">
             <button
               type="button"
-              onClick={() => setFormData({ ...formData, start_date: new Date().toISOString().split('T')[0] })}
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  start_date: isoToDatetimeLocalInput(new Date().toISOString()),
+                })
+              }
               className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
               disabled={isLoading}
             >
-              Today
+              Now
             </button>
             <button
               type="button"
               onClick={() => {
                 const firstDay = new Date();
                 firstDay.setDate(1);
-                setFormData({ ...formData, start_date: firstDay.toISOString().split('T')[0] });
+                firstDay.setHours(0, 0, 0, 0);
+                setFormData({
+                  ...formData,
+                  start_date: isoToDatetimeLocalInput(firstDay.toISOString()),
+                });
               }}
               className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
               disabled={isLoading}
             >
-              1st of Month
+              1st of Month 00:00
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                setFormData({
+                  ...formData,
+                  start_date: isoToDatetimeLocalInput(tomorrow.toISOString()),
+                });
+              }}
+              className="text-xs px-2 py-1 bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200"
+              disabled={isLoading}
+            >
+              +1 Day (same time)
             </button>
           </div>
         </div>

@@ -1,7 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { hasCompletedSurvey, surveyExpiresAt } from '@/lib/utils';
+import {
+  hasCompletedSurvey,
+  hasSurveyStarted,
+  surveyExpiresAt,
+} from '@/lib/utils';
 import { SurveyExpiryCountdown } from '@/components/survey/SurveyExpiryCountdown';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -41,6 +45,7 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {surveys.map((survey, index) => {
             const isCompleted = hasCompletedSurvey(survey.id);
+            const hasStarted = hasSurveyStarted(survey.start_date);
             
             return (
               <Card 
@@ -76,7 +81,12 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
 
                   {/* Status Badge */}
                   <div className="mb-4">
-                    {isCompleted ? (
+                    {!hasStarted ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                        <span>⏳</span>
+                        <span>Starts Soon</span>
+                      </div>
+                    ) : isCompleted ? (
                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                         <span>✓</span>
                         <span>Completed</span>
@@ -93,9 +103,14 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
                   <Link href={`/survey/${survey.id}`}>
                     <Button 
                       className="w-full" 
-                      variant={isCompleted ? "secondary" : "primary"}
+                      variant={!hasStarted || isCompleted ? "secondary" : "primary"}
                     >
-                      {isCompleted ? (
+                      {!hasStarted ? (
+                        <>
+                          <span>⏳</span>
+                          <span className="ml-2">View Start Countdown</span>
+                        </>
+                      ) : isCompleted ? (
                         <>
                           <span>🔄</span>
                           <span className="ml-2">Retake Survey</span>
@@ -112,13 +127,21 @@ export function SurveySelector({ surveys }: SurveySelectorProps) {
                   {/* Date Info */}
                   {(survey.start_date || surveyExpiresAt(survey)) && (
                     <div className="mt-3 space-y-2 pt-3 border-t border-border">
-                      {survey.start_date && (
+                      {survey.start_date && !hasStarted && (
+                        <SurveyExpiryCountdown
+                          expiresAtIso={survey.start_date}
+                          variant="compact"
+                          label="Starts in"
+                          expiredText="Survey is now open"
+                        />
+                      )}
+                      {survey.start_date && hasStarted && (
                         <p className="text-xs text-muted-foreground">
                           Started:{' '}
                           {new Date(survey.start_date).toLocaleDateString()}
                         </p>
                       )}
-                      {surveyExpiresAt(survey) && (
+                      {hasStarted && surveyExpiresAt(survey) && (
                         <SurveyExpiryCountdown
                           expiresAtIso={surveyExpiresAt(survey)!}
                           variant="compact"

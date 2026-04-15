@@ -113,12 +113,16 @@ export function SurveyExpiryCountdown({
   variant = 'banner',
   nested = false,
   className,
+  label,
+  expiredText,
 }: {
   expiresAtIso: string;
   variant?: Variant;
   /** When true, only label + digits (parent supplies border/card). */
   nested?: boolean;
   className?: string;
+  label?: string;
+  expiredText?: string;
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -127,8 +131,9 @@ export function SurveyExpiryCountdown({
 
   const state = useRemainingMs(expiresAtIso);
 
-  const label =
-    variant === 'compact' ? 'Time left' : variant === 'banner' ? 'Time left' : 'Time left to complete';
+  const countdownLabel =
+    label ??
+    (variant === 'compact' ? 'Time left' : variant === 'banner' ? 'Time left' : 'Time left to complete');
 
   const labelClass =
     variant === 'hero'
@@ -143,7 +148,7 @@ export function SurveyExpiryCountdown({
 
   const inner = !mounted ? (
     <>
-      <p className={labelClass}>{label}</p>
+      <p className={labelClass}>{countdownLabel}</p>
       <div className={variant === 'hero' ? 'mt-2' : 'mt-1'}>
         <CountdownPlaceholder variant={variant} />
       </div>
@@ -157,11 +162,11 @@ export function SurveyExpiryCountdown({
         variant === 'compact' && 'text-sm'
       )}
     >
-      Survey closed
+      {expiredText ?? 'Survey closed'}
     </p>
   ) : (
     <>
-      <p className={labelClass}>{label}</p>
+      <p className={labelClass}>{countdownLabel}</p>
       <div className={variant === 'hero' ? 'mt-2' : 'mt-1'}>
         <CountdownDigits variant={variant} parts={split(state.ms)} />
       </div>

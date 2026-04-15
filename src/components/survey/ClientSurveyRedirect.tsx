@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { hasCompletedSurvey, surveyExpiresAt } from '@/lib/utils';
+import { hasCompletedSurvey, hasSurveyStarted, surveyExpiresAt } from '@/lib/utils';
 import { SurveyExpiryCountdown } from '@/components/survey/SurveyExpiryCountdown';
 import type { Survey } from '@/lib/types';
 
@@ -15,6 +15,8 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
   const searchParams = useSearchParams();
   const isNewSession = searchParams.get('new') === 'true';
   const single = surveys.length === 1 ? surveys[0] : null;
+  const singleStarted = single ? hasSurveyStarted(single.start_date) : false;
+  const singleStartDate = single?.start_date ?? null;
   const singleExpires = single ? surveyExpiresAt(single) : null;
 
   useEffect(() => {
@@ -28,8 +30,10 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
       // A new session will be created automatically when the survey loads
     }
 
-    // Find the first survey that hasn't been completed
-    const availableSurvey = surveys.find(survey => !hasCompletedSurvey(survey.id));
+    // Find first survey that has started and hasn't been completed
+    const availableSurvey = surveys.find(
+      (survey) => hasSurveyStarted(survey.start_date) && !hasCompletedSurvey(survey.id)
+    );
 
     if (availableSurvey) {
       // Redirect to the first uncompleted survey
@@ -37,9 +41,11 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
         router.push(`/survey/${availableSurvey.id}`);
       }, 100);
     } else if (surveys.length > 0 && isNewSession) {
-      // If new session requested and surveys exist, go to first one (allow retake)
+      // If new session requested and started surveys exist, go to first started one
+      const startedSurvey = surveys.find((survey) => hasSurveyStarted(survey.start_date));
+      if (!startedSurvey) return;
       setTimeout(() => {
-        router.push(`/survey/${surveys[0].id}`);
+        router.push(`/survey/${startedSurvey.id}`);
       }, 100);
     } else {
       // All surveys completed, refresh to show "all completed" message
@@ -56,7 +62,17 @@ export function ClientSurveyRedirect({ surveys }: ClientSurveyRedirectProps) {
         <p className="text-sm text-muted-foreground">
           Found {surveys.length} active survey{surveys.length !== 1 ? 's' : ''}
         </p>
-        {singleExpires && (
+        {!singleStarted && singleStartDate && (
+          <div className="mt-5">
+            <SurveyExpiryCountdown
+              expiresAtIso={singleStartDate}
+              variant="hero"
+              label="Starts in"
+              expiredText="Survey is now open"
+            />
+          </div>
+        )}
+        {singleStarted && singleExpires && (
           <div className="mt-5">
             <SurveyExpiryCountdown expiresAtIso={singleExpires} variant="hero" />
           </div>

@@ -49,6 +49,16 @@ export function isSurveyActive(
    return true;
 }
 
+export function hasSurveyStarted(startDate: string | null): boolean {
+  if (!startDate) return true;
+  return new Date(startDate) <= new Date();
+}
+
+export function hasSurveyExpired(endDate: string | null): boolean {
+  if (!endDate) return false;
+  return new Date(endDate) < new Date();
+}
+
 /** Effective instant when the survey closes (new expires_at or legacy end_date). */
 export function surveyExpiresAt(s: {
   expires_at?: string | null;
@@ -69,7 +79,10 @@ export function parseSurveyStartDate(value: string | null | undefined): string |
   if (!value?.trim()) return null;
   const v = value.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
-    return `${v}T00:00:00.000Z`;
+    // Treat date-only input as LOCAL midnight to match user expectation in admin UI.
+    // Using UTC midnight can shift availability by timezone.
+    const localMidnight = new Date(`${v}T00:00:00`);
+    return isNaN(localMidnight.getTime()) ? null : localMidnight.toISOString();
   }
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d.toISOString();

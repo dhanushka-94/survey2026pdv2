@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { isSurveyActive, surveyExpiresAt } from '@/lib/utils';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { hasSurveyExpired, hasSurveyStarted, surveyExpiresAt } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ClientSurveyRedirect } from '@/components/survey/ClientSurveyRedirect';
 import { ClearHistoryButton } from '@/components/survey/ClearHistoryButton';
@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { SurveySelector } from '@/components/survey/SurveySelector';
 
 async function getAllActiveSurveys() {
-  const { data: surveys, error } = await supabase
+  const { data: surveys, error } = await supabaseAdmin
     .from('surveys')
     .select('*')
     .eq('is_active', true)
@@ -18,16 +18,13 @@ async function getAllActiveSurveys() {
     return [];
   }
 
-  // Filter surveys that are truly active (within date range)
-  const activeSurveys = surveys.filter((survey) =>
-    isSurveyActive(
-      survey.is_active,
-      survey.start_date,
-      surveyExpiresAt(survey)
-    )
+  // Keep active surveys that are not expired.
+  // Future-start surveys remain visible so users can see countdown to start.
+  const visibleSurveys = surveys.filter((survey) =>
+    !hasSurveyExpired(surveyExpiresAt(survey))
   );
 
-  return activeSurveys;
+  return visibleSurveys;
 }
 
 export default async function Home() {
@@ -39,8 +36,13 @@ export default async function Home() {
     return <SurveySelector surveys={activeSurveys} />;
   }
 
-  // If there's only one survey, auto-redirect to it
+  // If there's only one survey and it has started, auto-redirect to it
   if (activeSurveys.length === 1) {
+    const onlySurvey = activeSurveys[0];
+    if (!hasSurveyStarted(onlySurvey.start_date)) {
+      return <SurveySelector surveys={activeSurveys} />;
+    }
+
     return (
       <Suspense fallback={
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-pink-50 to-red-50">

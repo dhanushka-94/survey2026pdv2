@@ -27,7 +27,7 @@ export default async function LocationsPage({
       <AdminHeader
         adminPath={admin}
         title="GPS Locations"
-        description="Survey filling device locations from session tracking"
+        description="Locations captured from survey sessions and visitor tracking"
         actions={
           <Link href={`/${admin}/dashboard`}>
             <Button variant="secondary" size="sm">
@@ -42,7 +42,7 @@ export default async function LocationsPage({
             <CardTitle>📍 Survey Device Locations</CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               {locations.length} location{locations.length !== 1 ? 's' : ''} logged
-              (devices that allowed GPS access while filling surveys)
+              (devices that allowed GPS access)
             </p>
           </CardHeader>
           <CardContent>
@@ -61,10 +61,10 @@ export default async function LocationsPage({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left py-3 px-2 font-semibold">Survey</th>
+                      <th className="text-left py-3 px-2 font-semibold">Source</th>
                       <th className="text-left py-3 px-2 font-semibold">Time</th>
                       <th className="text-left py-3 px-2 font-semibold">Coordinates</th>
-                      <th className="text-left py-3 px-2 font-semibold">Session</th>
+                      <th className="text-left py-3 px-2 font-semibold">Session / Entry</th>
                       <th className="w-24" />
                     </tr>
                   </thead>
@@ -75,12 +75,16 @@ export default async function LocationsPage({
                         className="border-b border-border/50 hover:bg-muted/30 transition-colors"
                       >
                         <td className="py-3 px-2">
-                          <Link
-                            href={`/${admin}/surveys/${loc.survey_id}/responses`}
-                            className="text-primary hover:underline font-medium"
-                          >
-                            {loc.survey_title}
-                          </Link>
+                          {loc.source === 'survey_session' && loc.survey_id ? (
+                            <Link
+                              href={`/${admin}/surveys/${loc.survey_id}/responses`}
+                              className="text-primary hover:underline font-medium"
+                            >
+                              {loc.survey_title}
+                            </Link>
+                          ) : (
+                            <span className="font-medium">{loc.survey_title}</span>
+                          )}
                         </td>
                         <td className="py-3 px-2 text-muted-foreground whitespace-nowrap">
                           {formatDateTime(loc.last_active_at)}
@@ -89,7 +93,7 @@ export default async function LocationsPage({
                           {loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}
                         </td>
                         <td className="py-3 px-2 font-mono text-xs text-muted-foreground max-w-[120px] truncate">
-                          {loc.session_id.substring(0, 16)}…
+                          {loc.session_id ? `${loc.session_id.substring(0, 16)}…` : 'Visitor log'}
                         </td>
                         <td className="py-3 px-2">
                           <a

@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import type { QuestionFormData } from '@/lib/types';
 
+const MEDIA_BUCKET = 'survey';
+
 export async function getQuestions(surveyId: string) {
   try {
     const { data, error } = await supabaseAdmin
@@ -51,6 +53,10 @@ export async function createQuestion(formData: QuestionFormData) {
       ? formData.media_urls.filter(url => url && url.trim().length > 0)
       : null;
 
+    const cleanCheckboxOptions = formData.checkbox_options && formData.checkbox_options.length > 0
+      ? formData.checkbox_options.map(opt => opt.trim()).filter(opt => opt.length > 0)
+      : null;
+
     const { data, error } = await supabaseAdmin
       .from('questions')
       .insert([
@@ -61,6 +67,7 @@ export async function createQuestion(formData: QuestionFormData) {
           description: formData.description || null,
           media_url: formData.media_url || null,
           media_urls: cleanMediaUrls,
+          checkbox_options: cleanCheckboxOptions,
           question_type: formData.question_type,
           order_index: formData.order_index,
         },
@@ -91,6 +98,12 @@ export async function updateQuestion(id: string, formData: Partial<QuestionFormD
         ? formData.media_urls.filter(url => url && url.trim().length > 0)
         : null;
       updateData.media_urls = cleanMediaUrls;
+    }
+    if (formData.checkbox_options !== undefined) {
+      const cleanCheckboxOptions = formData.checkbox_options && formData.checkbox_options.length > 0
+        ? formData.checkbox_options.map(opt => opt.trim()).filter(opt => opt.length > 0)
+        : null;
+      updateData.checkbox_options = cleanCheckboxOptions;
     }
     if (formData.question_type !== undefined) updateData.question_type = formData.question_type;
     if (formData.category_id !== undefined) updateData.category_id = formData.category_id || null;
@@ -132,13 +145,30 @@ export async function deleteQuestion(id: string, surveyId: string) {
 
 export async function uploadMedia(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
+    const allowedMimeTypes = new Set([
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ]);
+
+    if (!allowedMimeTypes.has(file.type)) {
+      return { success: false, error: 'Only JPG, PNG, WEBP, and GIF files are allowed.' };
+    }
+
+    const maxBytes = 15 * 1024 * 1024; // 15MB
+    if (file.size > maxBytes) {
+      return { success: false, error: 'File is too large. Maximum allowed size is 15MB.' };
+    }
+
     // Generate unique filename
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
     
     // Upload to Supabase Storage
     const { data, error } = await supabaseAdmin.storage
-      .from('survey-media')
+      .from(MEDIA_BUCKET)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
@@ -148,7 +178,7 @@ export async function uploadMedia(file: File): Promise<{ success: boolean; url?:
 
     // Get public URL
     const { data: urlData } = supabaseAdmin.storage
-      .from('survey-media')
+      .from(MEDIA_BUCKET)
       .getPublicUrl(fileName);
 
     return { success: true, url: urlData.publicUrl };
@@ -165,7 +195,7 @@ export async function deleteMedia(url: string) {
     if (!filename) throw new Error('Invalid URL');
 
     const { error } = await supabaseAdmin.storage
-      .from('survey-media')
+      .from(MEDIA_BUCKET)
       .remove([filename]);
 
     if (error) throw error;
@@ -203,6 +233,7 @@ export async function bulkImportQuestions(data: {
       question_text,
       description: null,
       media_url: null,
+      checkbox_options: null,
       question_type,
       order_index: start_order_index + index,
     }));

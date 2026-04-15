@@ -42,7 +42,6 @@ export function DemographicsStep({ onSubmit }: DemographicsStepProps) {
     { value: Gender.MALE, label: 'Male' },
     { value: Gender.FEMALE, label: 'Female' },
     { value: Gender.OTHER, label: 'Other' },
-    { value: Gender.PREFER_NOT_TO_SAY, label: 'Prefer not to say' },
   ];
 
   return (
@@ -51,9 +50,9 @@ export function DemographicsStep({ onSubmit }: DemographicsStepProps) {
         <div className="flex items-center justify-center mb-4">
           <div className="text-6xl heart-pulse">💖</div>
         </div>
-        <CardTitle className="text-center">Welcome! Your Privacy Matters</CardTitle>
+        <CardTitle className="text-center">Welcome! Ready to begin?</CardTitle>
         <CardDescription className="text-center">
-          This survey is <strong className="text-primary">100% anonymous</strong>. We only collect age range and gender - no personal information, no tracking, no data sharing.
+          This short pre-step helps us group answers accurately for better research insights.
         </CardDescription>
         
         {/* Privacy Badges */}

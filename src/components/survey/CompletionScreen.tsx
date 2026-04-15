@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import type { Reward } from '@/lib/types';
 
 interface CompletionScreenProps {
   surveyTitle: string;
+  reward?: Reward | null;
 }
 
-export function CompletionScreen({ surveyTitle }: CompletionScreenProps) {
+export function CompletionScreen({ surveyTitle, reward }: CompletionScreenProps) {
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
@@ -60,18 +62,49 @@ export function CompletionScreen({ surveyTitle }: CompletionScreenProps) {
           <div className="bg-gradient-to-br from-primary/10 to-pink-100 border-2 border-primary/30 rounded-2xl p-8 mb-6 relative overflow-hidden">
             <div className="absolute top-2 right-2 text-4xl opacity-20">💝</div>
             <div className="absolute bottom-2 left-2 text-4xl opacity-20">💖</div>
-            
-            <div className="mb-4">
-              <span className="inline-block px-6 py-3 bg-gradient-to-r from-primary to-pink-500 text-white font-bold text-3xl rounded-xl shadow-lg">
-                🎁 $50 COUPON
-              </span>
-            </div>
-            <p className="text-xl font-medium text-foreground mb-2">
-              Use code <span className="font-mono font-bold text-2xl text-primary bg-white px-3 py-1 rounded">VIXEN50</span>
-            </p>
-            <p className="text-muted-foreground text-lg">
-              on <a href="https://www.vixen.com" target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">www.vixen.com</a>
-            </p>
+
+            {reward ? (
+              <>
+                <div className="mb-4">
+                  <span className="inline-block px-6 py-3 bg-gradient-to-r from-primary to-pink-500 text-white font-bold text-3xl rounded-xl shadow-lg">
+                    🎁 {reward.title}
+                  </span>
+                </div>
+                {reward.coupon_code && (
+                  <p className="text-xl font-medium text-foreground mb-2">
+                    Use code{' '}
+                    <span className="font-mono font-bold text-2xl text-primary bg-white px-3 py-1 rounded">
+                      {reward.coupon_code}
+                    </span>
+                  </p>
+                )}
+                {reward.website_url && (
+                  <p className="text-muted-foreground text-lg">
+                    on{' '}
+                    <a
+                      href={reward.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      {reward.website_url}
+                    </a>
+                  </p>
+                )}
+                {reward.description && (
+                  <p className="text-sm text-muted-foreground mt-3">{reward.description}</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold text-foreground mb-2">
+                  No reward configured for this survey yet
+                </p>
+                <p className="text-muted-foreground">
+                  Ask the admin to add a final reward in the Rewards tab.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="space-y-2 text-sm text-muted-foreground">

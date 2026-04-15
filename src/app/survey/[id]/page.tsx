@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { isSurveyActive } from '@/lib/utils';
 import { SurveyFlow } from '@/components/survey/SurveyFlow';
+import { getActiveRewardForSurvey } from '@/actions/rewards';
 
 async function getSurveyData(id: string) {
   const { data: survey, error: surveyError } = await supabase
@@ -36,10 +37,13 @@ async function getSurveyData(id: string) {
     return null;
   }
 
+  const rewardResult = await getActiveRewardForSurvey(id);
+
   return {
     survey,
     categories: categories || [],
     questions: questions || [],
+    finalReward: rewardResult.success ? rewardResult.data : null,
   };
 }
 
@@ -61,6 +65,7 @@ export default async function SurveyPage({
         survey={surveyData.survey}
         categories={surveyData.categories}
         questions={surveyData.questions}
+        finalReward={surveyData.finalReward}
       />
     </div>
   );

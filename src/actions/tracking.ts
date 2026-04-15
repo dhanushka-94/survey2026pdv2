@@ -130,13 +130,14 @@ export async function getActiveSessions(surveyId: string): Promise<{ success: bo
 
 export interface GpsLocation {
   id: string;
-  survey_id: string;
+  survey_id?: string;
   survey_title: string;
-  session_id: string;
+  session_id?: string;
   latitude: number;
   longitude: number;
   last_active_at: string;
-  current_page: number;
+  current_page?: number;
+  source: 'survey_session' | 'visitor_log';
 }
 
 export async function getGpsLocations(): Promise<{
@@ -145,7 +146,7 @@ export async function getGpsLocations(): Promise<{
   error?: string;
 }> {
   try {
-    const { data: sessions, error } = await supabaseAdmin
+    const { data: sessions, error: sessionsError } = await supabaseAdmin
       .from('session_tracking')
       .select(`
         id,
@@ -162,9 +163,25 @@ export async function getGpsLocations(): Promise<{
       .order('last_active_at', { ascending: false })
       .limit(500);
 
-    if (error) throw error;
+    if (sessionsError) throw sessionsError;
 
-    const locations: GpsLocation[] = (sessions || []).map((s: any) => ({
+    const { data: visitors, error: visitorsError } = await supabaseAdmin
+      .from('visitor_logs')
+      .select(`
+        id,
+        path,
+        latitude,
+        longitude,
+        created_at
+      `)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(500);
+
+    if (visitorsError) throw visitorsError;
+
+    const sessionLocations: GpsLocation[] = (sessions || []).map((s: any) => ({
       id: s.id,
       survey_id: s.survey_id,
       survey_title: s.surveys?.title || 'Unknown Survey',
@@ -173,7 +190,21 @@ export async function getGpsLocations(): Promise<{
       longitude: s.longitude,
       last_active_at: s.last_active_at,
       current_page: s.current_page,
+      source: 'survey_session',
     }));
+
+    const visitorLocations: GpsLocation[] = (visitors || []).map((v: any) => ({
+      id: `visitor-${v.id}`,
+      survey_title: v.path ? `Visited: ${v.path}` : 'Site Visitor',
+      latitude: v.latitude,
+      longitude: v.longitude,
+      last_active_at: v.created_at,
+      source: 'visitor_log',
+    }));
+
+    const locations: GpsLocation[] = [...sessionLocations, ...visitorLocations]
+      .sort((a, b) => new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime())
+      .slice(0, 500);
 
     return { success: true, data: locations };
   } catch (error) {

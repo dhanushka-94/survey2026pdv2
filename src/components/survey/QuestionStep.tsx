@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { LikeDislikeInput } from './LikeDislikeInput';
 import { RatingInput } from './RatingInput';
 import { CombinedInput } from './CombinedInput';
+import { MultiCheckboxInput } from './MultiCheckboxInput';
+import { AllThreeInput } from './AllThreeInput';
 import { BlurredMedia } from './BlurredMedia';
 import { MultipleImages } from './MultipleImages';
 import type { Question, DemographicsData } from '@/lib/types';
@@ -152,6 +154,18 @@ export function QuestionStep({
               <RatingInput value={selectedValue} onChange={setSelectedValue} />
             ) : question.question_type === 'combined' ? (
               <CombinedInput value={selectedValue} onChange={setSelectedValue} />
+            ) : question.question_type === 'multi_checkbox' ? (
+              <MultiCheckboxInput
+                value={selectedValue}
+                options={question.checkbox_options || []}
+                onChange={setSelectedValue}
+              />
+            ) : question.question_type === 'all_three' ? (
+              <AllThreeInput
+                value={selectedValue}
+                options={question.checkbox_options || []}
+                onChange={setSelectedValue}
+              />
             ) : (
               <LikeDislikeInput value={selectedValue} onChange={setSelectedValue} />
             )}

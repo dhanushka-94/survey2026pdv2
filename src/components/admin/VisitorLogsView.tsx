@@ -12,6 +12,10 @@ interface VisitorLog {
   os: string | null;
   device_type: string | null;
   ip_address: string | null;
+  platform: string | null;
+  language: string | null;
+  screen_resolution: string | null;
+  timezone: string | null;
   latitude: number | null;
   longitude: number | null;
   created_at: string;
@@ -123,6 +127,10 @@ export function VisitorLogsView({ logs }: VisitorLogsViewProps) {
                           <div><dt className="text-muted-foreground inline">Browser: </dt><dd className="inline">{log.browser || '—'}</dd></div>
                           <div><dt className="text-muted-foreground inline">OS: </dt><dd className="inline">{log.os || '—'}</dd></div>
                           <div><dt className="text-muted-foreground inline">Device: </dt><dd className="inline capitalize">{log.device_type || '—'}</dd></div>
+                          <div><dt className="text-muted-foreground inline">Platform: </dt><dd className="inline">{log.platform || '—'}</dd></div>
+                          <div><dt className="text-muted-foreground inline">Language: </dt><dd className="inline">{log.language || '—'}</dd></div>
+                          <div><dt className="text-muted-foreground inline">Screen: </dt><dd className="inline">{log.screen_resolution || '—'}</dd></div>
+                          <div><dt className="text-muted-foreground inline">Timezone: </dt><dd className="inline">{log.timezone || '—'}</dd></div>
                         </dl>
                         {log.user_agent && (
                           <p className="mt-2 text-muted-foreground break-all" title={log.user_agent}>

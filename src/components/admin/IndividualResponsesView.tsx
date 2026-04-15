@@ -79,6 +79,48 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
       }
     }
 
+    if (type === 'all_three') {
+      try {
+        const parsed = JSON.parse(answer);
+        return (
+          <div className="flex flex-col gap-1 items-end">
+            <span className={parsed.like === 'like' ? 'text-green-600' : 'text-red-600'}>
+              {parsed.like === 'like' ? '👍 Like' : '👎 Dislike'}
+            </span>
+            <span className="text-primary text-sm">⭐ {parsed.rating}/5</span>
+            <div className="flex flex-wrap gap-1 justify-end">
+              {(parsed.checkboxes || []).map((item: string) => (
+                <span key={item} className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      } catch {
+        return <span className="text-muted-foreground">Invalid answer</span>;
+      }
+    }
+
+    if (type === 'multi_checkbox') {
+      try {
+        const parsed = JSON.parse(answer);
+        if (Array.isArray(parsed)) {
+          return (
+            <div className="flex flex-wrap gap-1 justify-end">
+              {parsed.map((item: string) => (
+                <span key={item} className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700">
+                  {item}
+                </span>
+              ))}
+            </div>
+          );
+        }
+      } catch {
+        return <span className="text-muted-foreground">Invalid answer</span>;
+      }
+    }
+
     if (type === 'like_dislike') {
       return answer === 'like' ? (
         <span className="text-green-600 font-medium flex items-center gap-1">

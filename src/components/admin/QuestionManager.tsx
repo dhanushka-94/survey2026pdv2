@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createQuestion, updateQuestion, deleteQuestion, bulkImportQuestions } from '@/actions/questions';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,7 @@ interface QuestionManagerProps {
 
 export function QuestionManager({ surveyId, questions: initialQuestions, categories }: QuestionManagerProps) {
   const router = useRouter();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
@@ -29,6 +30,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
     description: '',
     media_url: '',
     media_urls: [] as string[],
+    checkbox_options_text: '',
     question_type: QuestionType.LIKE_DISLIKE,
     category_id: categories[0]?.id || '',
   });
@@ -45,6 +47,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
       description: '',
       media_url: '',
       media_urls: [],
+      checkbox_options_text: '',
       question_type: QuestionType.LIKE_DISLIKE,
       category_id: categories[0]?.id || '',
     });
@@ -105,10 +108,30 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
     setLoading('form');
 
     try {
+      const checkboxOptions = formData.checkbox_options_text
+        .split('\n')
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0);
+
+      if (
+        (formData.question_type === QuestionType.MULTI_CHECKBOX ||
+          formData.question_type === QuestionType.ALL_THREE) &&
+        checkboxOptions.length < 2
+      ) {
+        alert('Please add at least 2 checkbox options (one per line).');
+        setLoading(null);
+        return;
+      }
+
+      const payload = {
+        ...formData,
+        checkbox_options: checkboxOptions,
+      };
+
       const result = editingQuestion
-        ? await updateQuestion(editingQuestion.id, formData)
+        ? await updateQuestion(editingQuestion.id, payload)
         : await createQuestion({
-            ...formData,
+            ...payload,
             survey_id: surveyId,
             order_index: initialQuestions.length,
           });
@@ -128,16 +151,36 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
   };
 
   const handleEdit = (question: Question) => {
-    setEditingQuestion(question);
-    setFormData({
-      question_text: question.question_text,
-      description: question.description || '',
-      media_url: question.media_url || '',
-      media_urls: question.media_urls || [],
-      question_type: question.question_type,
-      category_id: question.category_id || '',
-    });
-    setShowForm(true);
+    try {
+      const safeMediaUrls = Array.isArray(question.media_urls) ? question.media_urls : [];
+      const safeCheckboxOptions = Array.isArray(question.checkbox_options)
+        ? question.checkbox_options
+        : [];
+
+      const allowedTypes = new Set(Object.values(QuestionType));
+      const safeQuestionType = allowedTypes.has(question.question_type as QuestionType)
+        ? (question.question_type as QuestionType)
+        : QuestionType.LIKE_DISLIKE;
+
+      setEditingQuestion(question);
+      setFormData({
+        question_text: question.question_text || '',
+        description: question.description || '',
+        media_url: question.media_url || '',
+        media_urls: safeMediaUrls,
+        checkbox_options_text: safeCheckboxOptions.join('\n'),
+        question_type: safeQuestionType,
+        category_id: question.category_id || categories[0]?.id || '',
+      });
+      setShowBulkImport(false);
+      setShowForm(true);
+      requestAnimationFrame(() => {
+        formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    } catch (error) {
+      console.error('Failed to open question editor:', error);
+      alert('Failed to open this question for editing. Please refresh and try again.');
+    }
   };
 
   const handleDelete = async (id: string, questionText: string) => {
@@ -193,6 +236,8 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
     { value: QuestionType.LIKE_DISLIKE, label: '👍👎 Like / Dislike' },
     { value: QuestionType.RATING_1_5, label: '⭐ Rating 1-5' },
     { value: QuestionType.COMBINED, label: '🎯 Combined (Both)' },
+    { value: QuestionType.MULTI_CHECKBOX, label: '☑️ Multi Checkbox' },
+    { value: QuestionType.ALL_THREE, label: '🧩 All 3 Types' },
   ];
 
   const categoryOptions = categories.map((cat) => ({
@@ -288,7 +333,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
       )}
 
       {showForm && (
-        <div className="border border-border rounded-lg p-6 bg-muted/50">
+        <div ref={formSectionRef} className="border border-border rounded-lg p-6 bg-muted/50">
           <h3 className="text-lg font-semibold mb-4">
             {editingQuestion ? 'Edit Question' : 'New Question'}
           </h3>
@@ -340,6 +385,21 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                 />
               )}
             </div>
+
+            {(formData.question_type === QuestionType.MULTI_CHECKBOX ||
+              formData.question_type === QuestionType.ALL_THREE) && (
+              <Textarea
+                label="Checkbox Options (one option per line)"
+                placeholder={'Option 1\nOption 2\nOption 3'}
+                value={formData.checkbox_options_text}
+                onChange={(e) =>
+                  setFormData({ ...formData, checkbox_options_text: e.target.value })
+                }
+                rows={5}
+                required
+                disabled={loading === 'form'}
+              />
+            )}
 
             {/* Image Upload Mode Toggle */}
             <div className="border border-border rounded-lg p-4 bg-background">
@@ -518,7 +578,11 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                         ? '👍👎 Like/Dislike'
                         : question.question_type === QuestionType.RATING_1_5
                         ? '⭐ Rating 1-5'
-                        : '🎯 Combined'}
+                        : question.question_type === QuestionType.COMBINED
+                        ? '🎯 Combined'
+                        : question.question_type === QuestionType.MULTI_CHECKBOX
+                        ? '☑️ Multi Checkbox'
+                        : '🧩 All 3 Types'}
                     </span>
                     {question.category && (
                       <span className="px-2 py-1 text-xs font-medium bg-muted text-muted-foreground rounded">

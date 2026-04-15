@@ -154,10 +154,7 @@ export function isValidMediaFile(file: File): boolean {
     'image/jpg',
     'image/png',
     'image/gif',
-    'image/webp',
-    'video/mp4',
-    'video/webm',
-    'video/quicktime'
+    'image/webp'
   ];
   return validTypes.includes(file.type);
 }

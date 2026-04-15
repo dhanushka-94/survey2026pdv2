@@ -116,6 +116,58 @@ export async function getAggregatedResults(surveyId: string): Promise<{ success:
         result.average_rating = questionResponses.length > 0
           ? sum / questionResponses.length
           : 0;
+      } else if (question.question_type === 'multi_checkbox') {
+        const optionCounts: Record<string, number> = {};
+        (question.checkbox_options || []).forEach((opt: string) => {
+          optionCounts[opt] = 0;
+        });
+
+        questionResponses.forEach((r) => {
+          try {
+            const parsed = JSON.parse(r.answer_value);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((opt: string) => {
+                optionCounts[opt] = (optionCounts[opt] || 0) + 1;
+              });
+            }
+          } catch {
+            // Ignore malformed payloads
+          }
+        });
+
+        result.option_counts = optionCounts;
+      } else if (question.question_type === 'all_three') {
+        const optionCounts: Record<string, number> = {};
+        (question.checkbox_options || []).forEach((opt: string) => {
+          optionCounts[opt] = 0;
+        });
+
+        const ratings: number[] = [];
+        let likeCount = 0;
+        let dislikeCount = 0;
+
+        questionResponses.forEach((r) => {
+          try {
+            const parsed = JSON.parse(r.answer_value);
+            if (parsed.like === 'like') likeCount += 1;
+            if (parsed.like === 'dislike') dislikeCount += 1;
+            if (parsed.rating) ratings.push(parseInt(parsed.rating, 10));
+            if (Array.isArray(parsed.checkboxes)) {
+              parsed.checkboxes.forEach((opt: string) => {
+                optionCounts[opt] = (optionCounts[opt] || 0) + 1;
+              });
+            }
+          } catch {
+            // Ignore malformed payloads
+          }
+        });
+
+        result.like_count = likeCount;
+        result.dislike_count = dislikeCount;
+        result.option_counts = optionCounts;
+        result.average_rating = ratings.length > 0
+          ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+          : 0;
       }
 
       return result;

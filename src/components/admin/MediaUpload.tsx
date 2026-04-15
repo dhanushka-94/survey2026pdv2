@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { uploadMedia, deleteMedia } from '@/actions/questions';
 import { Button } from '@/components/ui/Button';
-import { isValidMediaFile, formatFileSize } from '@/lib/utils';
+import { isValidMediaFile } from '@/lib/utils';
 
 interface MediaUploadProps {
   currentUrl?: string;
@@ -95,22 +95,16 @@ export function MediaUpload({ currentUrl, onUpload, onRemove, disabled }: MediaU
 
     // Validate file
     if (!isValidMediaFile(file)) {
-      setError('Invalid file type. Please upload an image or video.');
+      setError('Invalid file type. Please upload JPG, PNG, WEBP, or GIF only.');
       return;
     }
 
     // Check initial file size
     const fileSizeMB = file.size / 1024 / 1024;
     const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+    const isGif = file.type === 'image/gif';
 
-    // Vercel Hobby plan limit is 4.5MB, so we set 4MB to be safe
-    const MAX_SIZE_MB = 4;
-
-    if (isVideo && fileSizeMB > 10) {
-      setError('Video size must be less than 10MB. Please compress your video first.');
-      return;
-    }
+    const MAX_SIZE_MB = 15;
 
     setError('');
     setIsUploading(true);
@@ -118,8 +112,8 @@ export function MediaUpload({ currentUrl, onUpload, onRemove, disabled }: MediaU
     try {
       let fileToUpload = file;
 
-      // Compress images if needed
-      if (isImage && fileSizeMB > MAX_SIZE_MB) {
+      // Compress large static images; skip GIF to preserve animation frames
+      if (isImage && !isGif && fileSizeMB > MAX_SIZE_MB) {
         setUploadProgress('Compressing image...');
         const originalSize = (fileSizeMB).toFixed(2);
         fileToUpload = await compressImage(file, MAX_SIZE_MB);
@@ -213,7 +207,7 @@ export function MediaUpload({ currentUrl, onUpload, onRemove, disabled }: MediaU
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
             onChange={handleFileSelect}
             disabled={disabled || isUploading}
             className="block w-full text-sm text-foreground
@@ -226,7 +220,7 @@ export function MediaUpload({ currentUrl, onUpload, onRemove, disabled }: MediaU
               disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-muted-foreground">
-            📸 Images: Auto-compressed to 4MB | 🎥 Videos: Max 10MB
+            📸 JPG/PNG/WEBP/GIF only (max 15MB). GIF animation is preserved.
           </p>
         </div>
       )}

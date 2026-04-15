@@ -26,6 +26,20 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
+  const getShareableLinkPath = (surveyId: string) => `/survey/${surveyId}`;
+
+  const handleCopyLink = async (surveyId: string) => {
+    const path = getShareableLinkPath(surveyId);
+    const link =
+      typeof window !== 'undefined' ? `${window.location.origin}${path}` : path;
+    try {
+      await navigator.clipboard.writeText(link);
+      alert('Survey link copied to clipboard');
+    } catch {
+      prompt('Copy this survey link:', link);
+    }
+  };
+
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     setLoading(id);
     const result = await toggleSurveyStatus(id, !currentStatus);
@@ -136,6 +150,28 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
               )}
             </div>
 
+            {/* Shareable Link */}
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-semibold text-blue-800 mb-2">Shareable Link</p>
+              <div className="flex flex-wrap gap-2 items-center">
+                <code className="text-xs bg-white border border-blue-200 rounded px-2 py-1 break-all flex-1 min-w-[200px]">
+                  {getShareableLinkPath(survey.id)}
+                </code>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleCopyLink(survey.id)}
+                >
+                  Copy Link
+                </Button>
+                <Link href={`/survey/${survey.id}`} target="_blank">
+                  <Button variant="secondary" size="sm">
+                    Open
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
             {/* Primary Action - Activate/Deactivate */}
             {!survey.is_active && (
               <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
@@ -195,6 +231,11 @@ export function SurveyList({ surveys, adminPath }: SurveyListProps) {
               <Link href={`/${adminPath}/surveys/${survey.id}/responses`}>
                 <Button variant="secondary" size="sm">
                   💬 Responses
+                </Button>
+              </Link>
+              <Link href={`/${adminPath}/surveys/${survey.id}/rewards`}>
+                <Button variant="secondary" size="sm">
+                  🎁 Rewards
                 </Button>
               </Link>
               <Button

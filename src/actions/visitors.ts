@@ -10,6 +10,10 @@ export async function logVisitor(data: {
   userAgent?: string;
   latitude?: number;
   longitude?: number;
+  platform?: string;
+  language?: string;
+  screen_resolution?: string;
+  timezone?: string;
 }) {
   try {
     const headersList = await headers();
@@ -29,6 +33,10 @@ export async function logVisitor(data: {
       os,
       device_type,
       ip_address: ip,
+      platform: data.platform || null,
+      language: data.language || null,
+      screen_resolution: data.screen_resolution || null,
+      timezone: data.timezone || null,
     };
     if (data.latitude != null && data.longitude != null) {
       insertPayload.latitude = data.latitude;

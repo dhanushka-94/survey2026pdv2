@@ -313,172 +313,123 @@ export function ResultsView({ results, mediaViews = [] }: ResultsViewProps) {
             <div className="space-y-4">
               {results.questions.map((question, index) => {
                 const mediaUrl = getMediaUrl(question.question_id);
-                const viewCount = getMediaViewCount(question.question_id);
-                const questionHasMedia = hasMedia(question.question_id);
                 const isExpanded = expandedQuestion === question.question_id;
-                const likePercentage = question.total_responses > 0 
-                  ? calculatePercentage(question.like_count || 0, question.total_responses) 
-                  : 0;
 
                 return (
-                  <div
-                    key={question.question_id}
-                    className="border border-border rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow"
-                  >
-                    {/* Question Header - Clickable */}
+                  <div key={question.question_id} className="border border-border rounded-xl overflow-hidden bg-white">
                     <button
                       onClick={() => setExpandedQuestion(isExpanded ? null : question.question_id)}
                       className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
                     >
-                      <div className="flex items-start gap-4">
-                      {/* Image Thumbnail */}
-                      {mediaUrl && (
-                        <img
-                          src={mediaUrl}
-                          alt="Question media"
-                            className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                        />
-                      )}
-                      
-                      <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="px-2 py-1 text-xs font-bold bg-primary/10 text-primary rounded">
-                            Q{index + 1}
-                          </span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded ${
-                              question.question_type === 'like_dislike' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'bg-purple-100 text-purple-700'
-                            }`}>
-                              {question.question_type === 'like_dislike' ? '👍👎 Like/Dislike' : '⭐ Rating'}
-                            </span>
-                          {questionHasMedia && (
-                              <span className={`px-2 py-1 text-xs font-medium rounded ${
-                                viewCount > 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                📸 {viewCount}/{question.total_responses} viewed
-                              </span>
-                            )}
-                          </div>
-                          <h4 className="font-semibold text-foreground">{question.question_text}</h4>
-                          
-                          {/* Quick Result Preview */}
-                          <div className="mt-3 flex items-center gap-4">
-                            <span className="text-sm text-muted-foreground">
-                              {question.total_responses} responses
-                            </span>
-                            {question.question_type === 'like_dislike' && (
-                              <div className="flex-1 max-w-xs">
-                                <div className="flex h-2 rounded-full overflow-hidden bg-red-100">
-                                  <div 
-                                    className="bg-green-500 transition-all"
-                                    style={{ width: `${likePercentage}%` }}
-                                  />
-                                </div>
-                                <div className="flex justify-between text-xs mt-1">
-                                  <span className="text-green-600">👍 {likePercentage}%</span>
-                                  <span className="text-red-600">👎 {100 - likePercentage}%</span>
-                                </div>
-                              </div>
-                            )}
-                            {question.question_type === 'rating_1_5' && (
-                              <span className="text-lg font-bold text-primary">
-                                {question.average_rating?.toFixed(1) || '0.0'} ⭐
-                              </span>
-                          )}
-                          </div>
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-semibold">Q{index + 1}. {question.question_text}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{question.total_responses} responses</p>
                         </div>
-
                         <svg
-                          className={`w-5 h-5 text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`}
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          className={`w-5 h-5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </div>
                     </button>
 
-                    {/* Expanded Details */}
                     {isExpanded && (
-                      <div className="border-t border-border p-4 bg-muted/20">
-                    {/* Stats Row */}
-                        <div className="flex flex-wrap gap-4 mb-4 p-3 bg-white rounded-lg border border-border">
-                      <div className="text-center">
-                            <p className="text-2xl font-bold text-primary">{question.total_responses}</p>
-                        <p className="text-xs text-muted-foreground">Responses</p>
-                      </div>
-                      {questionHasMedia && (
-                            <>
-                              <div className="text-center border-l border-border pl-4">
-                                <p className="text-2xl font-bold text-blue-600">{viewCount}</p>
-                          <p className="text-xs text-muted-foreground">Image Views</p>
-                        </div>
-                              <div className="text-center border-l border-border pl-4">
-                                <p className="text-2xl font-bold text-purple-600">
-                                  {question.total_responses > 0 ? calculatePercentage(viewCount, question.total_responses) : 0}%
-                          </p>
-                          <p className="text-xs text-muted-foreground">View Rate</p>
-                        </div>
-                            </>
-                      )}
-                    </div>
-
-                    {/* Results */}
-                    {question.question_type === 'like_dislike' ? (
+                      <div className="border-t border-border p-4 bg-muted/20 space-y-4">
+                        {question.question_type === 'like_dislike' ? (
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
-                              <div className="text-4xl mb-2">👍</div>
-                              <p className="text-3xl font-bold text-green-600">{question.like_count || 0}</p>
-                              <p className="text-sm text-green-700 mt-1">
-                                {calculatePercentage(question.like_count || 0, question.total_responses)}% Like
-                          </p>
-                        </div>
-                            <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200">
-                              <div className="text-4xl mb-2">👎</div>
-                              <p className="text-3xl font-bold text-red-600">{question.dislike_count || 0}</p>
-                              <p className="text-sm text-red-700 mt-1">
-                                {calculatePercentage(question.dislike_count || 0, question.total_responses)}% Dislike
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-border">
-                              <span className="text-sm font-medium">Average Rating</span>
-                              <span className="text-2xl font-bold text-primary">
-                                {question.average_rating?.toFixed(2) || '0.00'} / 5 ⭐
-                          </span>
-                        </div>
+                            <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
+                              <p className="text-2xl font-bold text-green-700">{question.like_count || 0}</p>
+                              <p className="text-sm text-green-700">Like</p>
+                            </div>
+                            <div className="p-4 bg-red-50 rounded-lg border border-red-200 text-center">
+                              <p className="text-2xl font-bold text-red-700">{question.dislike_count || 0}</p>
+                              <p className="text-sm text-red-700">Dislike</p>
+                            </div>
+                          </div>
+                        ) : question.question_type === 'rating_1_5' ? (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">
+                              Average: {question.average_rating?.toFixed(2) || '0.00'} / 5
+                            </p>
                             {[5, 4, 3, 2, 1].map((rating) => {
-                          const count = question[`rating_${rating}` as keyof typeof question] as number || 0;
+                              const count = question[`rating_${rating}` as keyof typeof question] as number || 0;
                               const percentage = calculatePercentage(count, question.total_responses);
-                          return (
+                              return (
                                 <div key={rating} className="flex items-center gap-3">
-                                  <span className="w-16 text-sm font-medium">{'⭐'.repeat(rating)}</span>
-                                  <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
-                                <div
-                                      className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-4 transition-all"
-                                      style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                                  <span className="w-20 text-sm text-right text-muted-foreground">
+                                  <span className="w-16 text-sm">{'⭐'.repeat(rating)}</span>
+                                  <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                                    <div className="bg-yellow-400 h-3" style={{ width: `${percentage}%` }} />
+                                  </div>
+                                  <span className="w-24 text-right text-sm text-muted-foreground">
                                     {count} ({percentage}%)
                                   </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : question.question_type === 'multi_checkbox' ? (
+                          <div className="space-y-2">
+                            {Object.entries(question.option_counts || {})
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([option, count]) => {
+                                const percentage = calculatePercentage(count, question.total_responses);
+                                return (
+                                  <div key={option} className="flex items-center gap-3">
+                                    <span className="w-48 text-sm truncate" title={option}>{option}</span>
+                                    <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                                      <div className="bg-teal-500 h-3" style={{ width: `${percentage}%` }} />
+                                    </div>
+                                    <span className="w-24 text-right text-sm text-muted-foreground">
+                                      {count} ({percentage}%)
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="p-3 bg-green-50 rounded-lg border border-green-200 text-center">
+                                <p className="text-xl font-bold text-green-700">{question.like_count || 0}</p>
+                                <p className="text-xs text-green-700">Like</p>
+                              </div>
+                              <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-center">
+                                <p className="text-xl font-bold text-red-700">{question.dislike_count || 0}</p>
+                                <p className="text-xs text-red-700">Dislike</p>
+                              </div>
                             </div>
-                          );
-                        })}
+                            <p className="text-sm font-medium">
+                              Average Rating: {question.average_rating?.toFixed(2) || '0.00'} / 5
+                            </p>
+                            <div className="space-y-2">
+                              {Object.entries(question.option_counts || {})
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([option, count]) => {
+                                  const percentage = calculatePercentage(count, question.total_responses);
+                                  return (
+                                    <div key={option} className="flex items-center gap-3">
+                                      <span className="w-48 text-sm truncate" title={option}>{option}</span>
+                                      <div className="flex-1 bg-muted rounded-full h-3 overflow-hidden">
+                                        <div className="bg-indigo-500 h-3" style={{ width: `${percentage}%` }} />
+                                      </div>
+                                      <span className="w-24 text-right text-sm text-muted-foreground">
+                                        {count} ({percentage}%)
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
                           </div>
                         )}
 
-                        {/* Show image if has media */}
                         {mediaUrl && (
-                          <div className="mt-4 p-3 bg-white rounded-lg border border-border">
-                            <p className="text-xs text-muted-foreground mb-2 font-medium">📸 Question Image:</p>
-                            <img
-                              src={mediaUrl}
-                              alt="Question media"
-                              className="max-w-full sm:max-w-md rounded-lg shadow-sm"
-                            />
+                          <div className="p-3 bg-white rounded-lg border border-border">
+                            <p className="text-xs text-muted-foreground mb-2">📸 Question Image:</p>
+                            <img src={mediaUrl} alt="Question media" className="max-w-full sm:max-w-md rounded-lg shadow-sm" />
                           </div>
                         )}
                       </div>

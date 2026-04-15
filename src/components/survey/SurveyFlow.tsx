@@ -9,15 +9,16 @@ import { DemographicsStep } from './DemographicsStep';
 import { QuestionStep } from './QuestionStep';
 import { CompletionScreen } from './CompletionScreen';
 import { ProgressBar } from './ProgressBar';
-import type { Survey, Category, Question, DemographicsData } from '@/lib/types';
+import type { Survey, Category, Question, DemographicsData, Reward } from '@/lib/types';
 
 interface SurveyFlowProps {
   survey: Survey;
   categories: Category[];
   questions: Question[];
+  finalReward?: Reward | null;
 }
 
-export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
+export function SurveyFlow({ survey, categories, questions, finalReward }: SurveyFlowProps) {
   const router = useRouter();
   const { latitude, longitude } = useGeolocation();
   const [sessionId, setSessionId] = useState('');
@@ -27,6 +28,14 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
   const [isCompleted, setIsCompleted] = useState(false);
 
   const gpsCoords = latitude != null && longitude != null ? { latitude, longitude } : undefined;
+
+  const rawDescription = survey.description || '';
+  const descriptionWithoutAffiliation = rawDescription
+    .replace(/Affiliation:[^\n]*\n?/gi, '')
+    .trim();
+  const voluntaryMatch = descriptionWithoutAffiliation.match(
+    /Voluntary Participation:\s*([\s\S]*)/i
+  );
 
   useEffect(() => {
     // Get or create session ID (will be new if coming from "Take Another Survey")
@@ -76,7 +85,7 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
   };
 
   if (isCompleted) {
-    return <CompletionScreen surveyTitle={survey.title} />;
+    return <CompletionScreen surveyTitle={survey.title} reward={finalReward} />;
   }
 
   if (currentStep === 0) {
@@ -86,9 +95,35 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
           <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-1">
             {survey.title}
           </h1>
-          {survey.description && (
-            <p className="text-sm text-muted-foreground">
-              {survey.description}
+        </div>
+
+        <div className="space-y-4 mb-6">
+          <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 p-4">
+            <p className="text-base sm:text-lg font-bold text-amber-800">
+              🎁 Finish survey and get reward coupon code
+            </p>
+            <p className="text-sm font-semibold text-red-600 mt-1">
+              ⏳ Limited time available
+            </p>
+            {finalReward?.title && (
+              <p className="text-sm text-amber-700 mt-2">
+                Current reward: <span className="font-semibold">{finalReward.title}</span>
+              </p>
+            )}
+          </div>
+
+          {voluntaryMatch?.[1] && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <p className="text-sm font-semibold text-blue-700 mb-1">Voluntary Participation</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {voluntaryMatch[1].trim()}
+              </p>
+            </div>
+          )}
+
+          {!voluntaryMatch?.[1] && descriptionWithoutAffiliation && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {descriptionWithoutAffiliation}
             </p>
           )}
         </div>
@@ -103,7 +138,7 @@ export function SurveyFlow({ survey, categories, questions }: SurveyFlowProps) {
   );
 
   if (!currentQuestion) {
-    return <CompletionScreen surveyTitle={survey.title} />;
+    return <CompletionScreen surveyTitle={survey.title} reward={finalReward} />;
   }
 
   return (

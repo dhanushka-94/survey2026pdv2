@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { VisitorTracker } from "@/components/VisitorTracker";
+import { DisableRightClick } from "@/components/DisableRightClick";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,6 +57,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <VisitorTracker />
         </Suspense>
+        <DisableRightClick />
         <main className="flex-1">
           {children}
         </main>

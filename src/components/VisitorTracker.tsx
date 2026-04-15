@@ -25,10 +25,18 @@ export function VisitorTracker() {
 
     const currentPath = pathname;
     const doLog = (lat?: number, lng?: number) => {
+      const screenResolution =
+        typeof window !== 'undefined' ? `${window.screen.width}x${window.screen.height}` : undefined;
+
       logVisitor({
         path: currentPath,
         referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
         userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        platform: typeof navigator !== 'undefined' ? navigator.platform || undefined : undefined,
+        language: typeof navigator !== 'undefined' ? navigator.language || undefined : undefined,
+        screen_resolution: screenResolution,
+        timezone:
+          typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone || undefined : undefined,
         ...(lat != null && lng != null ? { latitude: lat, longitude: lng } : {}),
       });
     };

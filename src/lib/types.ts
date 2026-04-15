@@ -26,6 +26,7 @@ export interface Question {
   description: string | null;
   media_url: string | null;
   media_urls: string[] | null; // Multiple images
+  checkbox_options?: string[] | null;
   question_type: QuestionType;
   order_index: number;
   created_at: string;
@@ -55,11 +56,25 @@ export interface SessionTracking {
   longitude?: number | null;
 }
 
+export interface Reward {
+  id: string;
+  survey_id: string;
+  title: string;
+  coupon_code: string | null;
+  website_url: string | null;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Enums
 export enum QuestionType {
   LIKE_DISLIKE = 'like_dislike',
   RATING_1_5 = 'rating_1_5',
-  COMBINED = 'combined' // Both like/dislike AND rating
+  COMBINED = 'combined', // Both like/dislike AND rating
+  MULTI_CHECKBOX = 'multi_checkbox',
+  ALL_THREE = 'all_three'
 }
 
 export enum AgeRange {
@@ -99,6 +114,7 @@ export interface QuestionFormData {
   description: string;
   media_url: string;
   media_urls?: string[]; // Multiple images
+  checkbox_options?: string[];
   question_type: QuestionType;
   order_index: number;
 }
@@ -148,6 +164,7 @@ export interface QuestionResult {
   rating_4?: number;
   rating_5?: number;
   average_rating?: number;
+  option_counts?: Record<string, number>;
 }
 
 export interface AggregatedResults {

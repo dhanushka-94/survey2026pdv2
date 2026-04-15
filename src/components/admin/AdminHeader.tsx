@@ -23,7 +23,7 @@ export function AdminHeader({ adminPath, title, description, actions }: AdminHea
   };
 
   return (
-    <div className="bg-white border-b border-border shadow-sm mb-6">
+    <div className="sticky top-0 z-50 bg-white border-b border-border shadow-sm mb-6">
       <div className="max-w-7xl mx-auto px-6 py-4">
         {/* Top Bar - Navigation */}
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-border/50">

@@ -29,6 +29,7 @@ export interface Question {
   question_text: string;
   description: string | null;
   media_url: string | null;
+  video_url?: string | null;
   media_urls: string[] | null; // Multiple images
   checkbox_options?: string[] | null;
   question_type: QuestionType;
@@ -121,6 +122,7 @@ export interface QuestionFormData {
   question_text: string;
   description: string;
   media_url: string;
+  video_url?: string;
   media_urls?: string[]; // Multiple images
   checkbox_options?: string[];
   question_type: QuestionType;

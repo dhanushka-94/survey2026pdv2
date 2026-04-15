@@ -21,6 +21,7 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDevice, setFilterDevice] = useState<string>('all');
   const [expandedImages, setExpandedImages] = useState<Set<string>>(new Set());
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
   const [deletingResponse, setDeletingResponse] = useState<string | null>(null);
 
@@ -56,6 +57,30 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
+  };
+
+  const toEmbedUrl = (url: string): string => {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.toLowerCase();
+
+      if (host.includes('youtube.com')) {
+        if (u.pathname.startsWith('/embed/')) return url;
+        const videoId = u.searchParams.get('v');
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+      if (host.includes('youtu.be')) {
+        const videoId = u.pathname.replace('/', '');
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+      if (host.includes('vimeo.com')) {
+        const id = u.pathname.split('/').filter(Boolean)[0];
+        if (id) return `https://player.vimeo.com/video/${id}`;
+      }
+    } catch {
+      // Keep original URL fallback
+    }
+    return url;
   };
 
   const getAnswerDisplay = (answer: string, type: string) => {
@@ -147,7 +172,10 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
     ? Math.round(responses.reduce((acc, r) => acc + r.total_time_seconds, 0) / totalResponses)
     : 0;
   const mobileCount = responses.filter(r => r.device_type === 'mobile').length;
-  const desktopCount = responses.filter(r => r.device_type === 'desktop').length;
+  const totalVideoAnswers = responses.reduce(
+    (acc, r) => acc + r.answers.filter((a) => a.has_video).length,
+    0
+  );
 
   const handleDeleteSession = async (sessionId: string, displayName: string) => {
     if (!confirm(`Are you sure you want to delete all responses from "${displayName}"?\n\nThis will permanently delete:\n- All answers from this user\n- Media view tracking\n- Session tracking data\n\nThis action cannot be undone.`)) {
@@ -238,8 +266,8 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
         <Card>
           <CardContent className="pt-4 pb-4 px-3 sm:px-6">
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-purple-600">🖥️ {desktopCount}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Desktop</p>
+              <p className="text-2xl sm:text-3xl font-bold text-purple-600">🎬 {totalVideoAnswers}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Video-linked answers</p>
             </div>
           </CardContent>
         </Card>
@@ -443,6 +471,14 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
                                     </span>
                                   )
                                 )}
+                                {answer.has_video && answer.video_url && (
+                                  <button
+                                    onClick={() => setActiveVideoUrl(answer.video_url || null)}
+                                    className="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 rounded flex items-center gap-1 hover:bg-rose-200 transition-colors cursor-pointer"
+                                  >
+                                    🎬 Show Video
+                                  </button>
+                                )}
                                 <span className="text-xs text-muted-foreground">
                                   ⏱️ {formatTime(answer.time_spent_seconds)}
                                 </span>
@@ -579,6 +615,37 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
           )}
         </CardContent>
       </Card>
+
+      {activeVideoUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setActiveVideoUrl(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h4 className="font-semibold text-foreground">Question Video</h4>
+              <button
+                onClick={() => setActiveVideoUrl(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="aspect-video bg-black">
+              <iframe
+                src={toEmbedUrl(activeVideoUrl)}
+                title="Question video"
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

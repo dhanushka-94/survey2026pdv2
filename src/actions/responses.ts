@@ -259,7 +259,9 @@ export interface IndividualAnswer {
   answer_value: string;
   time_spent_seconds: number;
   has_media: boolean;
+  has_video: boolean;
   media_url: string | null;
+  video_url: string | null;
   media_urls?: string[] | null;
   media_viewed: boolean;
 }
@@ -290,7 +292,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       .from('responses')
       .select(`
         *,
-        question:questions(id, question_text, question_type, media_url, media_urls)
+        question:questions(id, question_text, question_type, media_url, media_urls, video_url)
       `)
       .eq('survey_id', surveyId)
       .order('created_at', { ascending: true });
@@ -370,6 +372,7 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       
       const timeSpent = response.time_spent_seconds || 0;
       const hasMedia = !!response.question?.media_url || (response.question?.media_urls && response.question.media_urls.length > 0);
+      const hasVideo = !!response.question?.video_url;
       const mediaViewed = viewedMedia.has(`${sid}-${response.question_id}`);
       
       sessionMap[sid].answers.push({
@@ -380,7 +383,9 @@ export async function getIndividualResponses(surveyId: string): Promise<{
         answer_value: response.answer_value,
         time_spent_seconds: timeSpent,
         has_media: hasMedia,
+        has_video: hasVideo,
         media_url: response.question?.media_url || null,
+        video_url: response.question?.video_url || null,
         media_urls: response.question?.media_urls || null,
         media_viewed: mediaViewed,
       });

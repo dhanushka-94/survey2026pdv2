@@ -66,6 +66,7 @@ export async function createQuestion(formData: QuestionFormData) {
           question_text: formData.question_text,
           description: formData.description || null,
           media_url: formData.media_url || null,
+          video_url: formData.video_url || null,
           media_urls: cleanMediaUrls,
           checkbox_options: cleanCheckboxOptions,
           question_type: formData.question_type,
@@ -92,6 +93,7 @@ export async function updateQuestion(id: string, formData: Partial<QuestionFormD
     if (formData.question_text !== undefined) updateData.question_text = formData.question_text;
     if (formData.description !== undefined) updateData.description = formData.description || null;
     if (formData.media_url !== undefined) updateData.media_url = formData.media_url || null;
+    if (formData.video_url !== undefined) updateData.video_url = formData.video_url || null;
     if (formData.media_urls !== undefined) {
       // Filter out empty URLs
       const cleanMediaUrls = formData.media_urls && formData.media_urls.length > 0

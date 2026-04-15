@@ -29,6 +29,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
     question_text: '',
     description: '',
     media_url: '',
+    video_url: '',
     media_urls: [] as string[],
     checkbox_options_text: '',
     question_type: QuestionType.LIKE_DISLIKE,
@@ -46,6 +47,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
       question_text: '',
       description: '',
       media_url: '',
+      video_url: '',
       media_urls: [],
       checkbox_options_text: '',
       question_type: QuestionType.LIKE_DISLIKE,
@@ -167,6 +169,7 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
         question_text: question.question_text || '',
         description: question.description || '',
         media_url: question.media_url || '',
+        video_url: question.video_url || '',
         media_urls: safeMediaUrls,
         checkbox_options_text: safeCheckboxOptions.join('\n'),
         question_type: safeQuestionType,
@@ -355,6 +358,16 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
+              }
+              disabled={loading === 'form'}
+            />
+
+            <Input
+              label="Video URL (optional)"
+              placeholder="https://www.youtube.com/watch?v=... or embed URL"
+              value={formData.video_url}
+              onChange={(e) =>
+                setFormData({ ...formData, video_url: e.target.value })
               }
               disabled={loading === 'form'}
             />
@@ -602,6 +615,15 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                         No Image
                       </span>
                     )}
+                    {question.video_url ? (
+                      <span className="px-2 py-1 text-xs font-medium bg-rose-100 text-rose-700 rounded">
+                        🎬 Video
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                        No Video
+                      </span>
+                    )}
                   </div>
                   <h4 className="font-medium text-foreground mb-1">
                     {question.question_text}
@@ -610,6 +632,16 @@ export function QuestionManager({ surveyId, questions: initialQuestions, categor
                     <p className="text-sm text-muted-foreground mb-2">
                       {question.description}
                     </p>
+                  )}
+                  {question.video_url && (
+                    <a
+                      href={question.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-xs text-primary hover:underline mb-2"
+                    >
+                      Open video link
+                    </a>
                   )}
                   
                   {/* Multiple Images Preview */}

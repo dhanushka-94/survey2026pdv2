@@ -80,7 +80,7 @@ export function QuestionStep({
     }
 
     if (!permission.allowed) {
-      alert('This survey can only be submitted once per device.');
+      alert('This survey allows up to 3 submissions per device. You have reached the limit.');
       setIsSubmitting(false);
       return;
     }

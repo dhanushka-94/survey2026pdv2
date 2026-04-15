@@ -10,6 +10,8 @@ export async function canDeviceSubmitSurvey(
   sessionId?: string
 ) {
   try {
+    const MAX_SUBMISSIONS_PER_DEVICE = 3;
+
     if (!deviceId) {
       return { success: true, allowed: true };
     }
@@ -38,11 +40,14 @@ export async function canDeviceSubmitSurvey(
     const { count, error } = await query;
     if (error) throw error;
 
-    const hasPreviousSubmission = (count || 0) > 0;
+    const submissionCount = count || 0;
+    const limitReached = submissionCount >= MAX_SUBMISSIONS_PER_DEVICE;
     return {
       success: true,
-      allowed: !hasPreviousSubmission,
-      reason: hasPreviousSubmission ? 'already_submitted_on_device' : undefined,
+      allowed: !limitReached,
+      reason: limitReached ? 'submission_limit_reached_for_device' : undefined,
+      submissionCount,
+      maxSubmissionsPerDevice: MAX_SUBMISSIONS_PER_DEVICE,
     };
   } catch (error) {
     console.error('canDeviceSubmitSurvey error:', error);

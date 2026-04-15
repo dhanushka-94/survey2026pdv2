@@ -24,7 +24,17 @@ async function getAllActiveSurveys() {
     !hasSurveyExpired(surveyExpiresAt(survey))
   );
 
-  return visibleSurveys;
+  const sortedSurveys = [...visibleSurveys].sort((a, b) => {
+    const aExpire = surveyExpiresAt(a);
+    const bExpire = surveyExpiresAt(b);
+    const aTs = aExpire ? new Date(aExpire).getTime() : Number.POSITIVE_INFINITY;
+    const bTs = bExpire ? new Date(bExpire).getTime() : Number.POSITIVE_INFINITY;
+
+    if (aTs !== bTs) return aTs - bTs;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  return sortedSurveys;
 }
 
 export default async function Home() {

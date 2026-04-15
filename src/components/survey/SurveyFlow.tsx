@@ -123,6 +123,14 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
             )}
           </div>
 
+          {survey.block_multiple_submissions_per_device && (
+            <div className="rounded-xl border border-red-300 bg-red-50 p-4">
+              <p className="text-sm font-semibold text-red-700">
+                Notice: This survey allows up to 3 submissions per device.
+              </p>
+            </div>
+          )}
+
           {voluntaryMatch?.[1] && (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
               <p className="text-sm font-semibold text-blue-700 mb-1">Voluntary Participation</p>
@@ -164,6 +172,12 @@ export function SurveyFlow({ survey, categories, questions, finalReward }: Surve
           <span className="text-xl">💖</span>
         </div>
       </div>
+
+      {survey.block_multiple_submissions_per_device && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-center text-xs sm:text-sm font-medium text-red-700">
+          Submission limit enabled: max 3 submissions per device.
+        </div>
+      )}
 
       <ProgressBar
         current={currentStep}

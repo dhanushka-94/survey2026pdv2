@@ -63,6 +63,7 @@ export default async function LocationsPage({
                     <tr className="border-b border-border">
                       <th className="text-left py-3 px-2 font-semibold">Source</th>
                       <th className="text-left py-3 px-2 font-semibold">Time</th>
+                      <th className="text-left py-3 px-2 font-semibold">Device</th>
                       <th className="text-left py-3 px-2 font-semibold">Coordinates</th>
                       <th className="text-left py-3 px-2 font-semibold">Session / Entry</th>
                       <th className="w-24" />
@@ -88,6 +89,11 @@ export default async function LocationsPage({
                         </td>
                         <td className="py-3 px-2 text-muted-foreground whitespace-nowrap">
                           {formatDateTime(loc.last_active_at)}
+                        </td>
+                        <td className="py-3 px-2 text-xs text-muted-foreground whitespace-nowrap">
+                          <div>{loc.device_type || 'Unknown device'}</div>
+                          <div>{loc.browser || 'Unknown browser'}</div>
+                          <div>{loc.os || 'Unknown OS'}</div>
                         </td>
                         <td className="py-3 px-2 font-mono text-xs">
                           {loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)}

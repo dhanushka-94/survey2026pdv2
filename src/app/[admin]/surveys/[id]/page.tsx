@@ -3,6 +3,7 @@ import { checkAdminSession } from '@/actions/auth';
 import { getSurvey } from '@/actions/surveys';
 import { SurveyForm } from '@/components/admin/SurveyForm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import { formatDateTime, surveyExpiresAt } from '@/lib/utils';
 
 export default async function EditSurveyPage({
   params,
@@ -28,6 +29,23 @@ export default async function EditSurveyPage({
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-6">
           Edit Survey
         </h1>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Schedule</CardTitle>
+            <CardDescription>
+              Survey timing configured for this survey
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-1">
+            <p>
+              Start: {result.data.start_date ? formatDateTime(result.data.start_date) : 'Not set'}
+            </p>
+            <p>
+              End: {surveyExpiresAt(result.data) ? formatDateTime(surveyExpiresAt(result.data)!) : 'Not set'}
+            </p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

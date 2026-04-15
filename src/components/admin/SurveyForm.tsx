@@ -226,10 +226,10 @@ export function SurveyForm({ adminPath, survey }: SurveyFormProps) {
             htmlFor="block_multiple_submissions_per_device"
             className="text-sm font-medium text-foreground"
           >
-            Block repeat submissions from same device
+            Limit submissions per device
           </label>
           <p className="text-xs text-muted-foreground mt-1">
-            When enabled, this survey can be submitted only once per device.
+            When enabled, this survey allows up to 3 submissions per device.
           </p>
         </div>
       </div>

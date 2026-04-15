@@ -133,6 +133,9 @@ export interface GpsLocation {
   survey_id?: string;
   survey_title: string;
   session_id?: string;
+  device_type?: string;
+  browser?: string;
+  os?: string;
   latitude: number;
   longitude: number;
   last_active_at: string;
@@ -181,7 +184,34 @@ export async function getGpsLocations(): Promise<{
 
     if (visitorsError) throw visitorsError;
 
+    const sessionIds = [...new Set((sessions || []).map((s: any) => s.session_id).filter(Boolean))];
+    const surveyIds = [...new Set((sessions || []).map((s: any) => s.survey_id).filter(Boolean))];
+
+    let deviceBySessionSurvey: Record<string, { device_type?: string; browser?: string; os?: string }> = {};
+    if (sessionIds.length > 0 && surveyIds.length > 0) {
+      const { data: responseDevices, error: responsesError } = await supabaseAdmin
+        .from('responses')
+        .select('survey_id, session_id, device_type, browser, os')
+        .in('session_id', sessionIds)
+        .in('survey_id', surveyIds)
+        .order('created_at', { ascending: true });
+
+      if (!responsesError && responseDevices) {
+        for (const row of responseDevices as any[]) {
+          const key = `${row.survey_id}:${row.session_id}`;
+          if (!deviceBySessionSurvey[key]) {
+            deviceBySessionSurvey[key] = {
+              device_type: row.device_type || undefined,
+              browser: row.browser || undefined,
+              os: row.os || undefined,
+            };
+          }
+        }
+      }
+    }
+
     const sessionLocations: GpsLocation[] = (sessions || []).map((s: any) => ({
+      ...(deviceBySessionSurvey[`${s.survey_id}:${s.session_id}`] || {}),
       id: s.id,
       survey_id: s.survey_id,
       survey_title: s.surveys?.title || 'Unknown Survey',
@@ -196,6 +226,9 @@ export async function getGpsLocations(): Promise<{
     const visitorLocations: GpsLocation[] = (visitors || []).map((v: any) => ({
       id: `visitor-${v.id}`,
       survey_title: v.path ? `Visited: ${v.path}` : 'Site Visitor',
+      device_type: v.device_type || undefined,
+      browser: v.browser || undefined,
+      os: v.os || undefined,
       latitude: v.latitude,
       longitude: v.longitude,
       last_active_at: v.created_at,

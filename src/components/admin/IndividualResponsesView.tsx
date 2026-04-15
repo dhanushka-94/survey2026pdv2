@@ -172,8 +172,8 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
     ? Math.round(responses.reduce((acc, r) => acc + r.total_time_seconds, 0) / totalResponses)
     : 0;
   const mobileCount = responses.filter(r => r.device_type === 'mobile').length;
-  const totalVideoAnswers = responses.reduce(
-    (acc, r) => acc + r.answers.filter((a) => a.has_video).length,
+  const totalVideoOpenEvents = responses.reduce(
+    (acc, r) => acc + r.answers.reduce((inner, a) => inner + (a.video_open_count || 0), 0),
     0
   );
 
@@ -266,8 +266,8 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
         <Card>
           <CardContent className="pt-4 pb-4 px-3 sm:px-6">
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-purple-600">🎬 {totalVideoAnswers}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Video-linked answers</p>
+              <p className="text-2xl sm:text-3xl font-bold text-purple-600">🎬 {totalVideoOpenEvents}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Video opens</p>
             </div>
           </CardContent>
         </Card>
@@ -472,12 +472,23 @@ export function IndividualResponsesView({ responses, surveyTitle, surveyId }: In
                                   )
                                 )}
                                 {answer.has_video && answer.video_url && (
-                                  <button
-                                    onClick={() => setActiveVideoUrl(answer.video_url || null)}
-                                    className="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 rounded flex items-center gap-1 hover:bg-rose-200 transition-colors cursor-pointer"
-                                  >
-                                    🎬 Show Video
-                                  </button>
+                                  <>
+                                    <button
+                                      onClick={() => setActiveVideoUrl(answer.video_url || null)}
+                                      className="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 rounded flex items-center gap-1 hover:bg-rose-200 transition-colors cursor-pointer"
+                                    >
+                                      🎬 Show Video
+                                    </button>
+                                    {answer.video_opened ? (
+                                      <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded">
+                                        Opened {answer.video_open_count}x • {formatTime(answer.video_view_seconds)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded">
+                                        Not opened
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                                 <span className="text-xs text-muted-foreground">
                                   ⏱️ {formatTime(answer.time_spent_seconds)}

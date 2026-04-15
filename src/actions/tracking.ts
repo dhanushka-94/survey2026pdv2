@@ -291,6 +291,38 @@ export async function trackMediaView(data: {
   }
 }
 
+// Track video view duration for a question
+export async function trackVideoView(data: {
+  survey_id: string;
+  question_id: string;
+  session_id: string;
+  duration_seconds: number;
+}) {
+  try {
+    const safeDuration = Number.isFinite(data.duration_seconds)
+      ? Math.max(0, Math.round(data.duration_seconds))
+      : 0;
+
+    const { error } = await supabaseAdmin
+      .from('video_views')
+      .insert([
+        {
+          survey_id: data.survey_id,
+          question_id: data.question_id,
+          session_id: data.session_id,
+          duration_seconds: safeDuration,
+        },
+      ]);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Track video view error:', error);
+    return { success: false, error: 'Failed to track video view' };
+  }
+}
+
 // Get media view stats for a survey
 export async function getMediaViewStats(surveyId: string) {
   try {

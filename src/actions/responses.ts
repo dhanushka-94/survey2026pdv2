@@ -264,6 +264,9 @@ export interface IndividualAnswer {
   video_url: string | null;
   media_urls?: string[] | null;
   media_viewed: boolean;
+  video_opened: boolean;
+  video_open_count: number;
+  video_view_seconds: number;
 }
 
 export interface IndividualResponse {
@@ -311,6 +314,24 @@ export async function getIndividualResponses(surveyId: string): Promise<{
     const viewedMedia = new Set(
       (mediaViews || []).map(mv => `${mv.session_id}-${mv.question_id}`)
     );
+
+    // Get video open events and duration totals
+    const { data: videoViews, error: videoViewsError } = await supabaseAdmin
+      .from('video_views')
+      .select('question_id, session_id, duration_seconds')
+      .eq('survey_id', surveyId);
+
+    if (videoViewsError) throw videoViewsError;
+
+    const videoStatsBySessionQuestion: Record<string, { count: number; seconds: number }> = {};
+    (videoViews || []).forEach((vv: any) => {
+      const key = `${vv.session_id}-${vv.question_id}`;
+      if (!videoStatsBySessionQuestion[key]) {
+        videoStatsBySessionQuestion[key] = { count: 0, seconds: 0 };
+      }
+      videoStatsBySessionQuestion[key].count += 1;
+      videoStatsBySessionQuestion[key].seconds += Number(vv.duration_seconds || 0);
+    });
 
     if (!responses || responses.length === 0) {
       return { success: true, data: [] };
@@ -374,6 +395,8 @@ export async function getIndividualResponses(surveyId: string): Promise<{
       const hasMedia = !!response.question?.media_url || (response.question?.media_urls && response.question.media_urls.length > 0);
       const hasVideo = !!response.question?.video_url;
       const mediaViewed = viewedMedia.has(`${sid}-${response.question_id}`);
+      const videoKey = `${sid}-${response.question_id}`;
+      const videoStats = videoStatsBySessionQuestion[videoKey] || { count: 0, seconds: 0 };
       
       sessionMap[sid].answers.push({
         response_id: response.id, // Include response ID for deletion
@@ -388,6 +411,9 @@ export async function getIndividualResponses(surveyId: string): Promise<{
         video_url: response.question?.video_url || null,
         media_urls: response.question?.media_urls || null,
         media_viewed: mediaViewed,
+        video_opened: videoStats.count > 0,
+        video_open_count: videoStats.count,
+        video_view_seconds: videoStats.seconds,
       });
       
       // Update total time
@@ -449,6 +475,12 @@ export async function deleteSessionResponses(sessionId: string, surveyId: string
       .eq('survey_id', surveyId);
 
     await supabaseAdmin
+      .from('video_views')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('survey_id', surveyId);
+
+    await supabaseAdmin
       .from('session_tracking')
       .delete()
       .eq('session_id', sessionId)
@@ -485,6 +517,11 @@ export async function deleteAllSurveyResponses(surveyId: string) {
     // Delete all media views for this survey
     await supabaseAdmin
       .from('media_views')
+      .delete()
+      .eq('survey_id', surveyId);
+
+    await supabaseAdmin
+      .from('video_views')
       .delete()
       .eq('survey_id', surveyId);
 

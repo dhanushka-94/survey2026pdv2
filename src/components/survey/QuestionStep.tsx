@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { updateSessionTracking } from '@/actions/tracking';
+import { trackVideoView } from '@/actions/tracking';
 import { canDeviceSubmitSurvey } from '@/actions/responses';
 import { getDeviceInfo, getOrCreateDeviceId } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -42,12 +43,79 @@ export function QuestionStep({
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [startTime, setStartTime] = useState<number>(Date.now());
+  const [showVideo, setShowVideo] = useState(false);
+  const videoOpenedAtRef = useRef<number | null>(null);
 
   // Reset selected value and start time when question changes
   useEffect(() => {
     setSelectedValue(null);
     setStartTime(Date.now());
+    setShowVideo(false);
+    videoOpenedAtRef.current = null;
   }, [question.id]);
+
+  useEffect(() => {
+    if (!showVideo) return;
+    videoOpenedAtRef.current = Date.now();
+  }, [showVideo]);
+
+  useEffect(() => {
+    return () => {
+      const openedAt = videoOpenedAtRef.current;
+      if (!openedAt) return;
+      const durationSeconds = Math.max(0, Math.round((Date.now() - openedAt) / 1000));
+      void trackVideoView({
+        survey_id: surveyId,
+        question_id: question.id,
+        session_id: sessionId,
+        duration_seconds: durationSeconds,
+      });
+      videoOpenedAtRef.current = null;
+    };
+  }, [question.id, sessionId, surveyId]);
+
+  const closeVideoAndTrack = async () => {
+    if (!showVideo) return;
+
+    const openedAt = videoOpenedAtRef.current;
+    const durationSeconds = openedAt
+      ? Math.max(0, Math.round((Date.now() - openedAt) / 1000))
+      : 0;
+
+    setShowVideo(false);
+    videoOpenedAtRef.current = null;
+
+    await trackVideoView({
+      survey_id: surveyId,
+      question_id: question.id,
+      session_id: sessionId,
+      duration_seconds: durationSeconds,
+    });
+  };
+
+  const toEmbedUrl = (url: string): string => {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.toLowerCase();
+
+      if (host.includes('youtube.com')) {
+        if (u.pathname.startsWith('/embed/')) return url;
+        const videoId = u.searchParams.get('v');
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+      if (host.includes('youtu.be')) {
+        const videoId = u.pathname.replace('/', '');
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+      if (host.includes('vimeo.com')) {
+        const id = u.pathname.split('/').filter(Boolean)[0];
+        if (id) return `https://player.vimeo.com/video/${id}`;
+      }
+    } catch {
+      // Keep original URL fallback
+    }
+    return url;
+  };
 
   useEffect(() => {
     // Track question view (include GPS if available)
@@ -163,6 +231,20 @@ export function QuestionStep({
             </div>
           )}
 
+          {/* Question Video Link */}
+          {question.video_url && (
+            <div className="mb-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowVideo(true)}
+                className="w-full sm:w-auto"
+              >
+                🎬 Show Video
+              </Button>
+            </div>
+          )}
+
           <div className="mt-6">
             {question.question_type === 'like_dislike' ? (
               <LikeDislikeInput value={selectedValue} onChange={setSelectedValue} />
@@ -211,6 +293,37 @@ export function QuestionStep({
           </div>
         </CardContent>
       </Card>
+
+      {showVideo && question.video_url && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={closeVideoAndTrack}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h4 className="font-semibold text-foreground">Question Video</h4>
+              <button
+                onClick={closeVideoAndTrack}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="aspect-video bg-black">
+              <iframe
+                src={toEmbedUrl(question.video_url)}
+                title="Question video"
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

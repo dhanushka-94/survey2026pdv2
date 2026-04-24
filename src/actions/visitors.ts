@@ -1,7 +1,9 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { checkAdminSession } from '@/actions/auth';
 import { getDeviceInfoFromUA } from '@/lib/utils';
 
 export async function logVisitor(data: {
@@ -194,5 +196,41 @@ export async function getVisitorStats() {
   } catch (error) {
     console.error('Get visitor stats error:', error);
     return { success: false, stats: null };
+  }
+}
+
+/**
+ * Admin only: deletes all visitor_logs and clears GPS on session_tracking.
+ * Does not delete surveys, questions, responses, or media/video tracking.
+ */
+export async function resetVisitorsAndLocationData(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const allowed = await checkAdminSession();
+    if (!allowed) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const { error: visitorError } = await supabaseAdmin
+      .from('visitor_logs')
+      .delete()
+      .gte('created_at', '1970-01-01T00:00:00.000Z');
+
+    if (visitorError) throw visitorError;
+
+    const { error: gpsError } = await supabaseAdmin
+      .from('session_tracking')
+      .update({ latitude: null, longitude: null })
+      .gte('last_active_at', '1970-01-01T00:00:00.000Z');
+
+    if (gpsError) throw gpsError;
+
+    revalidatePath('/', 'layout');
+    return { success: true };
+  } catch (error) {
+    console.error('resetVisitorsAndLocationData error:', error);
+    return { success: false, error: 'Failed to reset visitors and locations' };
   }
 }

@@ -5,6 +5,7 @@ import { getGpsLocations } from '@/actions/tracking';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ResetVisitorsLocationsButton } from '@/components/admin/ResetVisitorsLocationsButton';
 import { formatDateTime } from '@/lib/utils';
 
 export default async function LocationsPage({
@@ -29,11 +30,14 @@ export default async function LocationsPage({
         title="GPS Locations"
         description="Locations captured from survey sessions and visitor tracking"
         actions={
-          <Link href={`/${admin}/dashboard`}>
-            <Button variant="secondary" size="sm">
-              Dashboard
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/${admin}/dashboard`}>
+              <Button variant="secondary" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <ResetVisitorsLocationsButton />
+          </div>
         }
       />
       <div className="max-w-7xl mx-auto p-6">

@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { VisitorLogsView } from '@/components/admin/VisitorLogsView';
 import { VisitorLogsFilters } from '@/components/admin/VisitorLogsFilters';
+import { ResetVisitorsLocationsButton } from '@/components/admin/ResetVisitorsLocationsButton';
 
 export default async function VisitorsPage({
   params,
@@ -53,11 +54,14 @@ export default async function VisitorsPage({
         title="Visitor Logs"
         description="Track every visitor to your site"
         actions={
-          <Link href={`/${admin}/dashboard`}>
-            <Button variant="secondary" size="sm">
-              Dashboard
-            </Button>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/${admin}/dashboard`}>
+              <Button variant="secondary" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <ResetVisitorsLocationsButton />
+          </div>
         }
       />
       <div className="max-w-7xl mx-auto p-6">
